@@ -1,0 +1,756 @@
+/* Shifara Health - listing pages (hospitals, doctors, treatments). Loaded after style.css. */
+.min-w-0 {
+    min-width: 0
+}
+
+/* ---------- Page header ---------- */
+.lp-hero {
+    background: linear-gradient(180deg, var(--blush) 0%, #fff 100%);
+    padding: clamp(28px, 4vw, 48px) 0 clamp(96px, 9vw, 124px);
+    text-align: center
+}
+
+.lp-crumb {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--slate);
+    margin-bottom: 14px
+}
+
+.lp-crumb a {
+    color: var(--slate)
+}
+
+.lp-crumb a:hover {
+    color: var(--coral)
+}
+
+.lp-crumb span:last-child {
+    color: var(--navy);
+    font-weight: 600
+}
+
+.lp-hero h1 {
+    font-weight: 800;
+    font-size: clamp(28px, 3.6vw, 44px);
+    letter-spacing: -.03em;
+    color: var(--navy);
+    line-height: 1.15;
+    margin: 0 auto 12px;
+    max-width: 900px
+}
+
+.lp-hero p {
+    color: var(--slate);
+    max-width: 680px;
+    margin: 0 auto;
+    font-size: clamp(15px, 1.4vw, 16.5px)
+}
+
+/* ---------- Filter bar ---------- */
+.lf {
+    margin-top: clamp(-92px, -8vw, -72px);
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 24px 60px -24px rgba(16, 41, 73, .28);
+    position: relative;
+    z-index: 5
+}
+
+.lf-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--navy);
+    color: #fff;
+    padding: 14px 22px;
+    border-radius: 22px 22px 0 0
+}
+
+.lf-top .lf-title-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 16px
+}
+
+.lf-top svg {
+    width: 20px;
+    height: 20px;
+    color: var(--teal)
+}
+
+.lf-count {
+    background: rgba(72, 181, 178, .2);
+    color: #bff0ee;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 999px;
+    white-space: nowrap
+}
+
+.lf-body {
+    padding: 20px 22px 18px
+}
+
+.lf-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 8px
+}
+
+.lf-label svg {
+    width: 15px;
+    height: 15px;
+    color: var(--teal-d)
+}
+
+.combo,
+.lf-q {
+    position: relative
+}
+
+.combo input,
+.lf-q input {
+    width: 100%;
+    height: 50px;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 0 64px 0 14px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    background: #fff;
+    outline: 0;
+    text-overflow: ellipsis;
+    transition: border-color .2s, box-shadow .2s
+}
+
+.lf-q input {
+    padding-right: 14px
+}
+
+.combo input::placeholder,
+.lf-q input::placeholder {
+    color: #a3adbb;
+    font-weight: 400
+}
+
+.combo input:hover,
+.lf-q input:hover {
+    border-color: #cfd6df
+}
+
+.combo.open input,
+.combo input:focus,
+.lf-q input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 4px rgba(72, 181, 178, .15)
+}
+
+.combo.has-value input {
+    border-color: rgba(72, 181, 178, .6);
+    background: var(--teal-soft);
+    font-weight: 600;
+    color: var(--navy)
+}
+
+.combo-caret {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--slate);
+    pointer-events: none;
+    transition: transform .2s
+}
+
+.combo-caret svg {
+    width: 18px;
+    height: 18px;
+    display: block
+}
+
+.combo.open .combo-caret {
+    transform: translateY(-50%) rotate(180deg)
+}
+
+.combo-clear {
+    position: absolute;
+    right: 36px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 50%;
+    background: #dbe2ea;
+    color: var(--navy);
+    font-size: 15px;
+    line-height: 1;
+    display: none;
+    padding: 0
+}
+
+.combo-clear:hover {
+    background: var(--coral);
+    color: #fff
+}
+
+.combo.has-value .combo-clear {
+    display: block
+}
+
+.combo-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 20;
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+    display: none
+}
+
+.combo.open .combo-list {
+    display: block
+}
+
+.combo-opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer
+}
+
+.combo-opt span {
+    flex: 1;
+    min-width: 0
+}
+
+.combo-opt em {
+    font-style: normal;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--slate);
+    background: var(--soft);
+    border-radius: 999px;
+    padding: 2px 8px
+}
+
+.combo-opt svg {
+    width: 14px;
+    height: 14px;
+    color: var(--teal-d)
+}
+
+.combo-opt:hover,
+.combo-opt.active {
+    background: var(--teal-soft)
+}
+
+.combo-opt.sel {
+    font-weight: 700;
+    color: var(--teal-d)
+}
+
+.combo-group {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--slate);
+    padding: 10px 10px 4px
+}
+
+.combo-empty {
+    padding: 12px;
+    font-size: 14px;
+    color: var(--slate);
+    text-align: center
+}
+
+.lf-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px
+}
+
+.lf-clear {
+    border: 0;
+    background: none;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--slate)
+}
+
+.lf-clear:hover {
+    color: var(--coral)
+}
+
+.lf-search {
+    padding: 12px 26px
+}
+
+.lf-search svg {
+    width: 18px;
+    height: 18px
+}
+
+/* ---------- Results ---------- */
+.lr {
+    padding: clamp(32px, 4vw, 48px) 0 clamp(56px, 7vw, 90px)
+}
+
+.lr-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px
+}
+
+.lr-count {
+    font-size: 15px;
+    color: var(--slate)
+}
+
+.lr-count b {
+    color: var(--navy)
+}
+
+.lr-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--slate);
+    white-space: nowrap
+}
+
+.lr-sort select {
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 34px 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    background-position: right 12px center
+}
+
+.lr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px
+}
+
+.lr-chips:empty {
+    display: none
+}
+
+.lr-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(72, 181, 178, .4);
+    background: var(--teal-soft);
+    color: var(--teal-d);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 8px 6px 14px;
+    border-radius: 999px
+}
+
+.lr-chip span {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    line-height: 1
+}
+
+.lr-chip:hover span {
+    background: var(--coral);
+    color: #fff
+}
+
+/* ---------- Result cards ---------- */
+.lc {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 20px;
+    transition: transform .25s, box-shadow .25s, border-color .25s
+}
+
+.lc:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: transparent
+}
+
+.lc-head {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start
+}
+
+.lc-logo {
+    width: 72px;
+    height: 72px;
+    flex: none;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    overflow: hidden
+}
+
+.lc-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain
+}
+
+.lc h3 {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0 0 6px
+}
+
+.lc h3 a {
+    color: var(--navy)
+}
+
+.lc h3 a:hover {
+    color: var(--teal-d)
+}
+
+.lc-loc {
+    display: flex;
+    gap: 6px;
+    font-size: 13.5px;
+    color: var(--slate);
+    margin: 0
+}
+
+.lc-loc svg,
+.lc-meta svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    margin-top: 2px;
+    color: var(--teal-d)
+}
+
+.lc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px
+}
+
+.lc-tags span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--soft);
+    border-radius: 999px;
+    padding: 4px 10px
+}
+
+.lc-tags .more {
+    background: var(--blush);
+    color: var(--coral)
+}
+
+.lc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 13px;
+    color: var(--slate);
+    border-top: 1px dashed var(--line);
+    padding-top: 14px
+}
+
+.lc-meta span,
+.lc-meta a {
+    display: inline-flex;
+    gap: 6px;
+    align-items: flex-start
+}
+
+.lc-meta a {
+    color: var(--navy);
+    font-weight: 600
+}
+
+.lc-meta a:hover {
+    color: var(--coral)
+}
+
+.lc-meta-stack {
+    flex-direction: column
+}
+
+.lc-actions {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px
+}
+
+.lc-actions .btn {
+    padding: 10px 12px;
+    font-size: 13.5px
+}
+
+/* Doctor card */
+.lc-photo {
+    width: 84px;
+    height: 84px;
+    flex: none;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--teal-soft)
+}
+
+.lc-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top
+}
+
+.lc-initials {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--teal-d)
+}
+
+.lc-spec {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--coral);
+    margin-bottom: 4px
+}
+
+.lc-desig {
+    font-size: 13px;
+    color: var(--slate);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden
+}
+
+/* Treatment card */
+.lc-treat {
+    padding: 0;
+    overflow: hidden;
+    gap: 0
+}
+
+.lc-img {
+    position: relative;
+    display: block;
+    aspect-ratio: 16/10;
+    background: var(--soft);
+    overflow: hidden
+}
+
+.lc-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .5s
+}
+
+.lc-treat:hover .lc-img img {
+    transform: scale(1.05)
+}
+
+.lc-badge {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    background: rgba(255, 255, 255, .95);
+    color: var(--navy);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px
+}
+
+.lc-body {
+    padding: 18px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1
+}
+
+.lc-price {
+    font-size: 13.5px;
+    color: var(--slate);
+    margin: -6px 0 0
+}
+
+.lc-price b {
+    color: var(--navy);
+    font-size: 16px
+}
+
+/* ---------- Pagination, empty state, CTA ---------- */
+.lr-pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 36px
+}
+
+.lr-pager:empty {
+    display: none
+}
+
+.pg {
+    min-width: 42px;
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 14px;
+    display: inline-grid;
+    place-items: center;
+    transition: .2s
+}
+
+.pg:hover {
+    border-color: var(--teal);
+    color: var(--teal-d)
+}
+
+.pg.on {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff
+}
+
+.pg-gap {
+    border: 0;
+    background: none
+}
+
+.pg svg {
+    width: 16px;
+    height: 16px
+}
+
+.pg svg.flip {
+    transform: rotate(180deg)
+}
+
+.lr-empty {
+    text-align: center;
+    background: var(--soft);
+    border-radius: 22px;
+    padding: 48px 20px
+}
+
+.lr-empty .ico {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--coral);
+    display: grid;
+    place-items: center;
+    margin: 0 auto 16px
+}
+
+.lr-empty .ico svg {
+    width: 26px;
+    height: 26px
+}
+
+.lr-empty h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy)
+}
+
+.lr-empty p {
+    color: var(--slate);
+    max-width: 460px;
+    margin: 0 auto 20px
+}
+
+.lp-cta {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 24px;
+    padding: clamp(24px, 3vw, 36px)
+}
+
+.lp-cta h2 {
+    font-size: clamp(20px, 2.2vw, 26px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    margin: 0 0 6px
+}
+
+.lp-cta p {
+    color: #b8c4d3;
+    margin: 0
+}

@@ -1,0 +1,762 @@
+/* Shifara Health - detail pages (hospital, doctor, treatment). Loaded after style.css and listing.css. */
+
+/* ---------- Hero ---------- */
+.dt-hero {
+    background: linear-gradient(180deg, var(--blush) 0%, #fff 100%);
+    padding: clamp(24px, 3.5vw, 40px) 0 clamp(28px, 4vw, 44px)
+}
+
+.dt-crumb {
+    justify-content: flex-start;
+    margin-bottom: 20px
+}
+
+.dt-head {
+    display: flex;
+    gap: clamp(16px, 2.5vw, 28px);
+    align-items: center
+}
+
+.dt-logo {
+    width: clamp(88px, 11vw, 128px);
+    height: clamp(88px, 11vw, 128px);
+    flex: none;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 10px;
+    display: grid;
+    place-items: center;
+    box-shadow: var(--shadow)
+}
+
+.dt-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain
+}
+
+.dt-photo {
+    width: clamp(110px, 14vw, 168px);
+    height: clamp(110px, 14vw, 168px);
+    flex: none;
+    border-radius: 26px;
+    overflow: hidden;
+    background: var(--teal-soft);
+    box-shadow: var(--shadow)
+}
+
+.dt-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top
+}
+
+.dt-photo .lc-initials {
+    font-size: 44px
+}
+
+.dt-hero h1 {
+    font-weight: 800;
+    font-size: clamp(26px, 3.4vw, 42px);
+    letter-spacing: -.03em;
+    color: var(--navy);
+    line-height: 1.15;
+    margin: 0 0 8px
+}
+
+.dt-loc,
+.dt-desig {
+    display: flex;
+    gap: 6px;
+    color: var(--slate);
+    font-size: 15px;
+    margin: 0 0 14px
+}
+
+.dt-loc svg {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    margin-top: 3px;
+    color: var(--coral)
+}
+
+.dt-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px
+}
+
+.dt-facts span,
+.dt-facts a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy)
+}
+
+.dt-facts a:hover {
+    border-color: var(--teal);
+    color: var(--teal-d)
+}
+
+.dt-facts svg {
+    width: 15px;
+    height: 15px;
+    color: var(--teal-d)
+}
+
+.dt-facts .dt-fee {
+    background: var(--teal-soft);
+    border-color: transparent
+}
+
+.dt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px
+}
+
+/* Treatment hero */
+.dt-badge {
+    display: inline-block;
+    background: var(--teal-soft);
+    color: var(--teal-d);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 14px
+}
+
+.dt-tagline {
+    font-size: clamp(16px, 1.6vw, 19px);
+    color: var(--slate);
+    max-width: 560px;
+    margin: 0 0 18px
+}
+
+.dt-price {
+    display: inline-flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 14px 20px;
+    box-shadow: var(--shadow)
+}
+
+.dt-price small {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate)
+}
+
+.dt-price b {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -.03em;
+    color: var(--navy);
+    line-height: 1.15
+}
+
+.dt-price span {
+    font-size: 12.5px;
+    color: var(--slate)
+}
+
+.dt-hero-img {
+    border-radius: 26px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    box-shadow: var(--shadow-lg)
+}
+
+.dt-hero-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+/* ---------- Sticky sub-nav ---------- */
+.dt-subnav {
+    position: sticky;
+    top: 76px;
+    z-index: 10;
+    background: rgba(255, 255, 255, .96);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line)
+}
+
+.dt-subnav-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 12px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none
+}
+
+.dt-subnav-inner::-webkit-scrollbar {
+    display: none
+}
+
+.dt-subnav a {
+    white-space: nowrap;
+    padding: 14px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--slate);
+    border-bottom: 2px solid transparent
+}
+
+.dt-subnav a:hover {
+    color: var(--navy)
+}
+
+.dt-subnav a.on {
+    color: var(--navy);
+    border-bottom-color: var(--coral)
+}
+
+/* ---------- Body sections ---------- */
+.dt-body {
+    padding-top: clamp(28px, 4vw, 48px)
+}
+
+.dt-sec {
+    scroll-margin-top: 140px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: clamp(20px, 3vw, 32px);
+    margin-bottom: 20px
+}
+
+.dt-sec h2 {
+    font-size: clamp(20px, 2vw, 24px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--navy);
+    margin: 0 0 14px
+}
+
+.dt-sec p {
+    color: #45556a;
+    font-size: 15.5px;
+    line-height: 1.75
+}
+
+.dt-sec p:last-child {
+    margin-bottom: 0
+}
+
+.dt-h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 18px 0 8px
+}
+
+.dt-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px;
+    display: grid;
+    gap: 12px
+}
+
+.dt-list li {
+    display: flex;
+    gap: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #45556a
+}
+
+.dt-list svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    margin-top: 3px;
+    color: var(--teal-d)
+}
+
+.dt-list b {
+    color: var(--navy)
+}
+
+.dt-card {
+    height: 100%;
+    display: flex;
+    gap: 12px;
+    background: var(--soft);
+    border-radius: 16px;
+    padding: 16px
+}
+
+.dt-card-ic {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--teal-d);
+    display: grid;
+    place-items: center
+}
+
+.dt-card-ic svg {
+    width: 16px;
+    height: 16px
+}
+
+.dt-card b {
+    display: block;
+    color: var(--navy);
+    font-size: 15px;
+    margin-bottom: 4px
+}
+
+.dt-card p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0
+}
+
+.dt-spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px
+}
+
+.dt-spec {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--soft);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.4
+}
+
+.dt-spec svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    color: var(--coral)
+}
+
+.dt-tags a {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--soft);
+    border-radius: 999px;
+    padding: 6px 12px
+}
+
+.dt-tags a:hover {
+    background: var(--teal-soft);
+    color: var(--teal-d)
+}
+
+/* Doctors filter chips on the hospital page */
+.dt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px
+}
+
+.dt-chips button {
+    border: 1.5px solid var(--line);
+    background: #fff;
+    color: var(--navy);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px
+}
+
+.dt-chips button:hover {
+    border-color: var(--teal)
+}
+
+.dt-chips button.on {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff
+}
+
+/* Treatment sections with images */
+.dt-sec-media {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 22px;
+    align-items: center
+}
+
+@media (min-width:768px) {
+    .dt-sec-media:has(.dt-sec-img) {
+        grid-template-columns: 220px 1fr
+    }
+
+    .dt-sec-media:has(.dt-sec-img.order-md-last) {
+        grid-template-columns: 1fr 220px
+    }
+}
+
+.dt-sec-img {
+    border-radius: 18px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    max-width: 320px
+}
+
+.dt-sec-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.dt-steps {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px
+}
+
+.dt-step {
+    display: flex;
+    gap: 14px;
+    background: var(--soft);
+    border-radius: 16px;
+    padding: 16px
+}
+
+.dt-step>span {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--coral);
+    color: #fff;
+    font-weight: 800;
+    display: grid;
+    place-items: center
+}
+
+.dt-step b {
+    display: block;
+    color: var(--navy);
+    margin-bottom: 4px
+}
+
+.dt-step p {
+    font-size: 14.5px;
+    margin: 0
+}
+
+.dt-cost {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 6px 0 12px
+}
+
+.dt-cost table {
+    width: 100%;
+    border-collapse: collapse
+}
+
+.dt-cost th {
+    background: var(--navy);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 16px;
+    text-align: left
+}
+
+.dt-cost td {
+    padding: 14px 16px;
+    font-size: 15px;
+    color: var(--navy);
+    border-top: 1px solid var(--line)
+}
+
+.dt-cost td:last-child {
+    font-weight: 800;
+    white-space: nowrap
+}
+
+.dt-cost tr:nth-child(even) td {
+    background: var(--soft)
+}
+
+.dt-cost-note {
+    font-size: 13px !important;
+    color: var(--slate) !important
+}
+
+/* ---------- Sidebar ---------- */
+.dt-side {
+    position: sticky;
+    top: 140px;
+    display: grid;
+    gap: 16px
+}
+
+.dt-quote {
+    scroll-margin-top: 140px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: var(--shadow)
+}
+
+.dt-quote-kicker {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--teal-d);
+    background: var(--teal-soft);
+    border-radius: 999px;
+    padding: 4px 10px;
+    margin-bottom: 10px
+}
+
+.dt-quote h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0
+}
+
+.dt-quote-sub {
+    font-size: 14px;
+    color: var(--slate);
+    margin: 2px 0 14px
+}
+
+.dt-quote .form-control {
+    padding: 11px 13px;
+    font-size: 14.5px
+}
+
+.dt-quote-note {
+    display: flex;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    margin: 12px 0 0
+}
+
+.dt-quote-note svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    margin-top: 2px;
+    color: var(--teal-d)
+}
+
+.dt-quote-ok {
+    text-align: center;
+    padding: 10px 0
+}
+
+.dt-hosp {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 14px;
+    color: var(--ink);
+    transition: .2s
+}
+
+.dt-hosp:hover {
+    border-color: var(--teal);
+    color: var(--ink)
+}
+
+.dt-hosp-logo {
+    width: 56px;
+    height: 56px;
+    flex: none;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 4px;
+    display: grid;
+    place-items: center
+}
+
+.dt-hosp-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain
+}
+
+.dt-hosp small {
+    display: block;
+    font-size: 11.5px;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: .06em
+}
+
+.dt-hosp b {
+    display: block;
+    font-size: 15px;
+    color: var(--navy);
+    line-height: 1.3
+}
+
+.dt-hosp span span {
+    font-size: 12.5px;
+    color: var(--slate)
+}
+
+.dt-hosp>svg {
+    margin-left: auto;
+    color: var(--coral)
+}
+
+.dt-glance {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 22px;
+    padding: 22px
+}
+
+.dt-glance h3 {
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0 0 12px
+}
+
+.dt-glance div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+    font-size: 14px
+}
+
+.dt-glance small {
+    color: #9fb0c3
+}
+
+.dt-glance a,
+.dt-glance b {
+    color: #fff;
+    font-weight: 700;
+    text-align: right
+}
+
+.dt-glance a:hover {
+    color: var(--teal)
+}
+
+/* ---------- Related & CTA ---------- */
+.dt-related {
+    margin-top: clamp(40px, 5vw, 64px)
+}
+
+.dt-related-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px
+}
+
+.dt-related-head h2 {
+    font-size: clamp(22px, 2.4vw, 28px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--navy);
+    margin: 0
+}
+
+.dt-cta {
+    margin-top: clamp(40px, 5vw, 64px)
+}
+
+.dt-missing {
+    padding: 100px 0
+}
+
+.dt-missing .ico {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--blush);
+    color: var(--coral);
+    display: grid;
+    place-items: center;
+    margin: 0 auto 16px
+}
+
+.dt-missing .ico svg {
+    width: 28px;
+    height: 28px
+}
+
+.dt-missing h1 {
+    font-weight: 800;
+    color: var(--navy)
+}
+
+.dt-missing p {
+    color: var(--slate)
+}
+
+.dt-loading {
+    padding: 120px 0;
+    text-align: center;
+    color: var(--slate)
+}
+
+@media (max-width:991.98px) {
+    .dt-side {
+        position: static
+    }
+
+    .dt-subnav {
+        top: 68px
+    }
+}
+
+@media (max-width:575.98px) {
+    .dt-head {
+        flex-direction: column;
+        align-items: flex-start
+    }
+
+    .dt-actions .btn {
+        flex: 1 1 100%
+    }
+}
