@@ -1115,9 +1115,13 @@ svg.i {
 
 /* ---------- Hospital logos ---------- */
 .logos {
-    background: var(--soft);
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line)
+    background:
+        radial-gradient(900px 420px at 0% 0%, rgba(72, 181, 178, .16), transparent 62%),
+        radial-gradient(760px 380px at 100% 100%, rgba(72, 181, 178, .12), transparent 62%),
+        radial-gradient(600px 300px at 100% 0%, rgba(235, 104, 97, .06), transparent 60%),
+        linear-gradient(180deg, #f1f8f8 0%, #f6fafb 100%);
+    border-top: 1px solid rgba(72, 181, 178, .14);
+    border-bottom: 1px solid rgba(72, 181, 178, .14)
 }
 
 .accr-badges span {
@@ -1504,7 +1508,10 @@ svg.i {
 
 /* ---------- Process ---------- */
 .proc-sec {
-    background: linear-gradient(180deg, #fff 0%, var(--soft) 100%)
+    background:
+        radial-gradient(820px 380px at 50% 100%, rgba(72, 181, 178, .14), transparent 65%),
+        radial-gradient(520px 300px at 0% 30%, rgba(235, 104, 97, .07), transparent 60%),
+        linear-gradient(180deg, #fff 0%, #f1f8f8 100%)
 }
 
 .ps-card {
@@ -1633,7 +1640,11 @@ svg.i {
 
 /* ---------- Services ---------- */
 .services {
-    background: var(--blush)
+    background:
+        radial-gradient(900px 420px at 100% 0%, rgba(235, 104, 97, .13), transparent 62%),
+        radial-gradient(760px 380px at 0% 100%, rgba(234, 216, 208, .75), transparent 62%),
+        radial-gradient(600px 320px at 0% 0%, rgba(72, 181, 178, .08), transparent 60%),
+        linear-gradient(180deg, #fff6f3 0%, #fdf1ed 100%)
 }
 
 /* Feature: Medical Tourism */
@@ -2140,13 +2151,12 @@ svg.i {
 
 /* ---------- Free services ---------- */
 .free {
-    background: var(--teal-soft);
-    border-radius: 28px;
     padding: clamp(36px, 5vw, 60px) clamp(18px, 4vw, 48px)
 }
 
 .free-item {
     background: #fff;
+    border: 1px solid var(--line);
     border-radius: 999px;
     padding: 12px 20px;
     display: inline-flex;
@@ -2159,6 +2169,7 @@ svg.i {
 }
 
 .free-item:hover {
+    border-color: rgba(72, 181, 178, .45);
     box-shadow: var(--shadow);
     transform: translateY(-2px)
 }
@@ -2169,7 +2180,11 @@ svg.i {
 
 /* ---------- Blog ---------- */
 .blog-sec {
-    background: var(--soft)
+    background:
+        radial-gradient(900px 420px at 0% 0%, rgba(72, 181, 178, .16), transparent 62%),
+        radial-gradient(760px 380px at 100% 100%, rgba(72, 181, 178, .12), transparent 62%),
+        radial-gradient(600px 300px at 100% 0%, rgba(235, 104, 97, .06), transparent 60%),
+        linear-gradient(180deg, #f1f8f8 0%, #f6fafb 100%)
 }
 
 .post {
@@ -2338,8 +2353,42 @@ svg.i {
 }
 
 /* ---------- FAQ (Bootstrap accordion skin) ---------- */
-.faq {
-    background: var(--blush)
+/* Homepage tinted sections: brand-colour glows + a faint dot texture that fades out toward the middle */
+.countries-sec {
+    background:
+        radial-gradient(900px 420px at 0% 0%, rgba(72, 181, 178, .16), transparent 62%),
+        radial-gradient(760px 380px at 100% 100%, rgba(72, 181, 178, .12), transparent 62%),
+        radial-gradient(600px 300px at 100% 0%, rgba(235, 104, 97, .06), transparent 60%),
+        linear-gradient(180deg, #f1f8f8 0%, #f6fafb 100%)
+}
+
+.logos,
+.proc-sec,
+.services,
+.countries-sec,
+.blog-sec {
+    position: relative;
+    isolation: isolate
+}
+
+.logos::before,
+.proc-sec::before,
+.services::before,
+.countries-sec::before,
+.blog-sec::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(16, 41, 73, .09) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 40%, #000 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 40%, #000 100%)
+}
+
+.services::before {
+    background-image: radial-gradient(rgba(235, 104, 97, .16) 1px, transparent 1.4px)
 }
 
 .faq .accordion-item {

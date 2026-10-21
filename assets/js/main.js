@@ -63,13 +63,9 @@ document.querySelectorAll('#costTabs .tab-btn').forEach(t => t.addEventListener(
 
 // Countries: [ISO code, name, region]
 const COUNTRIES = [
-    ['bd', 'Bangladesh', 'sa'], ['ng', 'Nigeria', 'af'], ['om', 'Oman', 'me'], ['ae', 'UAE', 'me'],
-    ['kw', 'Kuwait', 'me'], ['ir', 'Iran', 'me'], ['iq', 'Iraq', 'me'], ['sa', 'Saudi Arabia', 'me'],
-    ['qa', 'Qatar', 'me'], ['bh', 'Bahrain', 'me'], ['ye', 'Yemen', 'me'],
-    ['ke', 'Kenya', 'af'], ['et', 'Ethiopia', 'af'], ['tz', 'Tanzania', 'af'], ['ug', 'Uganda', 'af'],
-    ['sd', 'Sudan', 'af'], ['gh', 'Ghana', 'af'], ['so', 'Somalia', 'af'],
-    ['np', 'Nepal', 'sa'], ['lk', 'Sri Lanka', 'sa'], ['mv', 'Maldives', 'sa'], ['af', 'Afghanistan', 'sa'], ['mm', 'Myanmar', 'sa'],
-    ['uz', 'Uzbekistan', 'ca'], ['kz', 'Kazakhstan', 'ca'], ['tj', 'Tajikistan', 'ca'], ['tm', 'Turkmenistan', 'ca'], ['kg', 'Kyrgyzstan', 'ca'], ['ru', 'Russia', 'ca']
+    ['bd', 'Bangladesh', 'sa'],
+    ['ng', 'Nigeria', 'af'], ['ke', 'Kenya', 'af'], ['et', 'Ethiopia', 'af'], ['tz', 'Tanzania', 'af'],
+    ['ug', 'Uganda', 'af'], ['gh', 'Ghana', 'af'], ['sd', 'Sudan', 'af'], ['so', 'Somalia', 'af']
 ];
 const ctryGrid = document.getElementById('ctryGrid');
 if (ctryGrid) {

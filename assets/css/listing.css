@@ -325,7 +325,7 @@
 
 /* ---------- Results ---------- */
 .lr {
-    padding: clamp(32px, 4vw, 48px) 0 clamp(56px, 7vw, 90px)
+    padding: clamp(32px, 4vw, 48px) 0 0px
 }
 
 .lr-bar {
@@ -758,7 +758,7 @@
 /* ---------- Homepage hospital finder ---------- */
 .home-finder {
     background: #fff;
-    padding: 0 0 clamp(40px, 5vw, 64px)
+    padding: 60px 0px;
 }
 
 .home-finder .lf {
