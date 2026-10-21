@@ -43,7 +43,8 @@
             label: 'Hospital', icon: 'home', placeholder: 'Select hospital…',
             values: st => D.hospitals.filter(h => !st.city || h.city === st.city).map(h => h.id),
             text: v => hospBy[v] ? `${hospBy[v].name}, ${cityName(hospBy[v].city)}` : v,
-            match: (it, v) => it.hospitalId === v,
+            // doctors belong to one hospital; a treatment is offered where its department is
+            match: (it, v) => TYPE === 'treatments' ? !!hospBy[v]?.departments.includes(it.department) : it.hospitalId === v,
         },
     };
 
@@ -55,9 +56,9 @@
             sorts: { doctors: ['Most doctors', (a, b) => b.doctors - a.doctors], name: ['Name A–Z', (a, b) => a.name.localeCompare(b.name)] },
             title(st) {
                 const where = st.city ? cityName(st.city) : 'India';
-                if (st.treatment) return `Best Hospitals for ${treatBy[st.treatment]?.name} in ${where}`;
-                if (st.department) return `Best ${deptBy[st.department]?.noun} Hospitals in ${where}`;
-                return `Best Hospitals in ${where}`;
+                if (st.treatment) return `Hospitals for ${treatBy[st.treatment]?.name} in ${where}`;
+                if (st.department) return `${deptBy[st.department]?.noun} Hospitals in ${where}`;
+                return `Partner Hospitals in ${where}`;
             },
             intro: (n, st) => `Carefully curated list of ${n} partner ${n === 1 ? 'hospital' : 'hospitals'}${st.department ? ' offering ' + deptName(st.department).toLowerCase() : ''} for international patients, with free coordination from Shifara.`,
             card: hospitalCard,
@@ -70,20 +71,23 @@
             title(st) {
                 if (st.hospital && hospBy[st.hospital]) return `Doctors at ${hospBy[st.hospital].name}`;
                 const where = st.city ? cityName(st.city) : 'India';
-                if (st.treatment) return `Best Doctors for ${treatBy[st.treatment]?.name} in ${where}`;
-                if (st.department) return `Best ${deptBy[st.department]?.noun} Doctors in ${where}`;
-                return `Best Doctors in ${where}`;
+                if (st.treatment) return `Doctors for ${treatBy[st.treatment]?.name} in ${where}`;
+                if (st.department) return `${deptBy[st.department]?.noun} Doctors in ${where}`;
+                return `Specialist Doctors in ${where}`;
             },
             intro: n => `${n} experienced ${n === 1 ? 'specialist' : 'specialists'} at JCI and NABH accredited partner hospitals. Get a free opinion before you travel.`,
             card: doctorCard,
         },
         treatments: {
-            items: D.treatments, keys: ['department'], noun: 'treatments',
+            items: D.treatments, keys: ['department', 'hospital'], noun: 'treatments',
             heading: 'Find a Treatment', searchLabel: 'Search Treatments', qPlaceholder: 'Search treatment name…',
             haystack: t => `${t.name} ${deptName(t.department)}`,
             sorts: { name: ['Name A–Z', (a, b) => a.name.localeCompare(b.name)] },
-            title: st => st.department ? `${deptName(st.department)} Treatments in India` : 'Treatments in India',
-            intro: n => `${n} ${n === 1 ? 'treatment' : 'treatments'} available at our partner hospitals. Send your reports for a free plan and cost estimate.`,
+            title(st) {
+                const what = st.department ? `${deptName(st.department)} Treatments` : 'Treatments';
+                return st.hospital && hospBy[st.hospital] ? `${what} at ${hospBy[st.hospital].name}` : `${what} in India`;
+            },
+            intro: (n, st) => `${n} ${n === 1 ? 'treatment' : 'treatments'} available ${st.hospital && hospBy[st.hospital] ? `at ${hospBy[st.hospital].name}, ${cityName(hospBy[st.hospital].city)}` : 'at our partner hospitals'}. Send your reports for a free plan and cost estimate.`,
             card: treatmentCard,
         },
     };
@@ -194,7 +198,7 @@
     bar.querySelector('.lf-title').textContent = P.heading;
     bar.querySelector('.lf-search span').textContent = P.searchLabel;
     const fields = bar.querySelector('#lfFields');
-    const colClass = { 1: 'col-md-6', 2: 'col-md-6', 3: 'col-md-6 col-lg-3', 4: 'col-md-6 col-lg' }[P.keys.length + 1] || 'col-md-6 col-lg';
+    const colClass = { 1: 'col-md-6', 2: 'col-md-6', 3: 'col-md-4' }[P.keys.length + 1] || 'col-md-6 col-lg';
     fields.innerHTML = P.keys.map(k => `
         <div class="${colClass}">
             <label class="lf-label" for="lf-${k}">${svg(FILTERS[k].icon)}${FILTERS[k].label}</label>

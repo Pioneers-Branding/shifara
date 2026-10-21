@@ -754,3 +754,13 @@
     color: #b8c4d3;
     margin: 0
 }
+
+/* ---------- Homepage hospital finder ---------- */
+.home-finder {
+    background: #fff;
+    padding: 0 0 clamp(40px, 5vw, 64px)
+}
+
+.home-finder .lf {
+    margin-top: 0
+}

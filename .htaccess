@@ -1,16 +1,14 @@
-# Shifara Health - clean URLs on Apache / LiteSpeed (Hostinger).
-# The listing and detail pages are single templates; JavaScript reads the filters / id from the path.
-DirectoryIndex ind.html index.html
+# Shifara Health - URLs on Apache / LiteSpeed (Hostinger).
+#   /hospital/<id>/  /doctor/<id>/  /treatment/<id>/   real folders, served as they are (index.html)
+#   /hospitals/  /doctors/  /treatments/                real folders (listing pages)
+#   /hospitals/cardiology/delhi/ …                      no folder -> the listing page; filters are read from the path
+DirectoryIndex index.html ind.html
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # Old .html?query links -> clean URLs are handled in JavaScript; here we only map clean URLs to templates.
-
-    # Listing pages: /hospitals, /hospitals/cardiology/delhi, /doctors/pediatrics/page/2 ...
-    RewriteRule ^(hospitals|doctors|treatments)(/.*)?/?$ $1.html [L,QSA]
-
-    # Detail pages: /hospital/<id>, /doctor/<id>, /treatment/<id>
-    RewriteRule ^(hospital|doctor|treatment)/[^/]+/?$ $1.html [L,QSA]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(hospitals|doctors|treatments)/.+$ $1/index.html [L,QSA]
 </IfModule>

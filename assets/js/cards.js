@@ -17,13 +17,14 @@ window.ShifaraUI = (() => {
     const svg = (id, cls = '') => `<svg class="${cls}"><use href="#${id}" /></svg>`;
     const deptName = s => deptBy[s]?.name || s;
     const cityName = s => cityBy[s]?.name || s;
-    // Clean, path-based URLs (rewritten to the .html templates by .htaccess / server.js):
-    //   /hospitals/<department>/<treatment>/<city>   /doctors/.../<hospital>   /treatments/<department>
-    //   /hospital/<id>   /doctor/<id>   /treatment/<id>
+    // Clean, folder-style URLs:
+    //   /hospital/<id>/  /doctor/<id>/  /treatment/<id>/  -> real folders with their own index.html
+    //   /hospitals/<department>/<treatment>/<city>/  /doctors/.../<hospital>/  /treatments/<department>/
+    //     -> the listing folder's index.html (.htaccess / server.js), filters read from the path
     const link = {
-        hospital: id => `/hospital/${id}`,
-        doctor: id => `/doctor/${id}`,
-        treatment: id => `/treatment/${id}`,
+        hospital: id => `/hospital/${id}/`,
+        doctor: id => `/doctor/${id}/`,
+        treatment: id => `/treatment/${id}/`,
     };
     const SEGMENT_ORDER = ['department', 'treatment', 'city', 'hospital'];
     function listUrl(type, f = {}, extra = {}) {
@@ -34,7 +35,7 @@ window.ShifaraUI = (() => {
         const qs = new URLSearchParams();
         if (extra.q) qs.set('q', extra.q);
         if (extra.sort) qs.set('sort', extra.sort);
-        return `/${type}${parts.length ? '/' + parts.join('/') : ''}${qs.toString() ? '?' + qs : ''}`;
+        return `/${type}/${parts.length ? parts.join('/') + '/' : ''}${qs.toString() ? '?' + qs : ''}`;
     }
     // Read filters back from a path such as /hospitals/cardiology/delhi/page/2
     function readFilters(pathname) {

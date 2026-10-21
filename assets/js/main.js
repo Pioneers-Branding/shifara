@@ -30,6 +30,9 @@ function qcSubmit() {
     const name = document.getElementById('qcName'), phone = document.getElementById('qcPhone');
     if (!name.value.trim()) { name.focus(); return; }
     if (!phone.value.trim()) { phone.focus(); return; }
+    // DPDP Act: no submission without explicit consent
+    const consent = document.getElementById('qcConsent');
+    if (!consent.checked) { consent.reportValidity(); return; }
     Object.assign(lead, {
         country: document.getElementById('qcCountry').value,
         when: document.getElementById('qcWhen').value,
@@ -37,8 +40,7 @@ function qcSubmit() {
         name: name.value, phone: phone.value,
         email: document.getElementById('qcEmail').value
     });
-    // TODO: send `lead` to the CRM / form endpoint
-    console.log('Lead', lead);
+    // TODO: send `lead` (with consent: true and a timestamp, as proof of consent) to the CRM / form endpoint
     qcNext(4);
 }
 
@@ -99,7 +101,7 @@ if (ctryGrid) {
         ['Urology & Nephrology', 'kidney', 'Kidney stones, dialysis, prostate', 'urology'], ['Gastroenterology', 'stomach', 'Liver, GI, endoscopy', 'gastroenterology'],
         ['Bariatric Surgery', 'scale', 'Weight-loss surgery', 'bariatric'], ['Gynaecology', 'female', 'Hysterectomy, fibroids', 'gynecology'],
         ['Paediatrics', 'child', "Children's surgery and care", 'pediatrics'], ['ENT', 'ear', 'Ear, nose and throat', 'ent']]
-            .map(([t, ic, sub, dept]) => ({ type: 'Specialities', title: t, sub: sub + ' · hospitals & doctors', icon: ic, href: '/hospitals/' + dept })),
+            .map(([t, ic, sub, dept]) => ({ type: 'Specialities', title: t, sub: sub + ' · hospitals & doctors', icon: ic, href: '/hospitals/' + dept + '/' })),
         ...[['Coronary Artery Bypass (CABG)', '$5,500 – $8,500', 'heart'], ['Total Knee Replacement', '$5,500 – $8,000', 'bone'],
         ['Liver Transplant', '$28,000 – $40,000', 'liver'], ['IVF Cycle', '$2,500 – $4,500', 'baby'],
         ['Brain Tumour Surgery', '$8,000 – $18,000', 'brain'], ['Hair Transplant', '$1,800 – $3,500', 'spark'],
@@ -115,7 +117,7 @@ if (ctryGrid) {
         ['Venkateshwar Hospital', 'hospitals/venkateshwar.jpg', 'Delhi'],
         ['Prime Super Speciality Hospital', 'hospitals/prime-super-speciality.jpg', 'India'],
         ['World IVF Infertility Centre', 'hospitals/world-ivf.jpg', 'India']]
-            .map(([t, img, sub]) => ({ type: 'Hospitals', title: t, sub: 'JCI / NABH accredited · ' + sub, img: U + img, href: '/hospitals?q=' + encodeURIComponent(t.split(' ')[0]) })),
+            .map(([t, img, sub]) => ({ type: 'Hospitals', title: t, sub: 'JCI / NABH accredited · ' + sub, img: U + img, href: '/hospitals/?q=' + encodeURIComponent(t.split(' ')[0]) })),
         ...[['Medical Tourism', 'globe', 'End-to-end treatment travel'], ['Step-Down Care', 'home', 'Supervised recovery stays'],
         ['Nurses & Caregivers', 'nurse', 'Hospital, hotel or home'], ['Concierge Desk', 'bell', 'Food, prayer, sightseeing'],
         ['Video Consultation', 'video', 'Talk to a specialist first'], ['Air Ambulance', 'amb', 'ICU-equipped transfers'],
@@ -177,9 +179,9 @@ if (ctryGrid) {
         const dept = Object.fromEntries(S.departments.map(d => [d.slug, d.name]));
         INDEX = [
             ...INDEX.filter(it => it.type !== 'Hospitals'),
-            ...S.hospitals.map(h => ({ type: 'Hospitals', title: h.name, sub: h.address || city[h.city], img: h.logo, href: '/hospital/' + h.id })),
-            ...S.treatments.map(t => ({ type: 'Treatments', title: t.name, sub: [dept[t.department], t.cost && 'from ' + t.cost.split(/[–-]/)[0].trim()].filter(Boolean).join(' · '), icon: 'doc', href: '/treatment/' + t.id })),
-            ...S.doctors.map(d => ({ type: 'Doctors', title: d.name, sub: [d.speciality, d.hospital, city[d.city]].filter(Boolean).join(' · '), img: d.image, icon: 'user', href: '/doctor/' + d.id })),
+            ...S.hospitals.map(h => ({ type: 'Hospitals', title: h.name, sub: h.address || city[h.city], img: h.logo, href: '/hospital/' + h.id + '/' })),
+            ...S.treatments.map(t => ({ type: 'Treatments', title: t.name, sub: [dept[t.department], t.cost && 'from ' + t.cost.split(/[–-]/)[0].trim()].filter(Boolean).join(' · '), icon: 'doc', href: '/treatment/' + t.id + '/' })),
+            ...S.doctors.map(d => ({ type: 'Doctors', title: d.name, sub: [d.speciality, d.hospital, city[d.city]].filter(Boolean).join(' · '), img: d.image, icon: 'user', href: '/doctor/' + d.id + '/' })),
         ];
     }
     function loadCatalog() {
