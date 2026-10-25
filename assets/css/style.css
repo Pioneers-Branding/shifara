@@ -492,14 +492,54 @@ svg.i {
 }
 
 @media (max-width:991.98px) {
+    /* the navbar is sticky, so an open menu taller than the screen could never be scrolled:
+       let the menu itself scroll between the header and the fixed mobile bar */
+    .site-nav .navbar-collapse {
+        max-height: calc(100vh - 200px);
+        max-height: calc(100dvh - 200px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -12px;
+        padding: 0 12px
+    }
+
+    .site-nav .navbar-nav {
+        padding: 8px 0 16px !important
+    }
+
+    .site-nav .nav-item {
+        border-bottom: 1px solid var(--line)
+    }
+
+    .site-nav .nav-item:last-child {
+        border-bottom: 0
+    }
+
+    .site-nav .nav-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 12px !important;
+        font-size: 16px
+    }
+
+    .site-nav .dropdown-menu,
     .site-nav .mega-menu {
+        border: 0;
         box-shadow: none;
-        max-height: 60vh;
-        overflow-y: auto
+        background: var(--soft);
+        border-radius: 14px;
+        margin: 0 0 12px;
+        padding: 14px 12px
     }
 
     .site-nav .mega-menu .container {
-        padding: 0 8px
+        padding: 0
+    }
+
+    .site-nav .mega-menu .row {
+        --bs-gutter-y: 14px
     }
 }
 
@@ -1138,10 +1178,10 @@ svg.i {
 /* ---------- Hospital logos ---------- */
 .logos {
     background:
-        radial-gradient(900px 420px at 0% 0%, rgba(72, 181, 178, .16), transparent 62%),
-        radial-gradient(760px 380px at 100% 100%, rgba(72, 181, 178, .12), transparent 62%),
-        radial-gradient(600px 300px at 100% 0%, rgba(235, 104, 97, .06), transparent 60%),
-        linear-gradient(180deg, #f1f8f8 0%, #f6fafb 100%);
+        radial-gradient(900px 420px at 100% 0%, rgba(235, 104, 97, .13), transparent 62%),
+        radial-gradient(760px 380px at 0% 100%, rgba(234, 216, 208, .75), transparent 62%),
+        radial-gradient(600px 320px at 0% 0%, rgba(72, 181, 178, .08), transparent 60%),
+        linear-gradient(180deg, #fff6f3 0%, #fdf1ed 100%);
     border-top: 1px solid rgba(72, 181, 178, .14);
     border-bottom: 1px solid rgba(72, 181, 178, .14)
 }
@@ -1239,27 +1279,11 @@ svg.i {
     color: inherit
 }
 
-.spec::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--teal), var(--coral));
-    transform: scaleX(0);
-    transition: transform .35s
-}
-
 .spec:hover {
     border-color: transparent;
     box-shadow: var(--shadow-lg);
     transform: translateY(-4px);
     color: inherit
-}
-
-.spec:hover::after {
-    transform: scaleX(1)
 }
 
 .spec .ic {

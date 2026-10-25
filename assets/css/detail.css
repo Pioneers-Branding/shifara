@@ -309,7 +309,9 @@
 
 /* ---------- Body sections ---------- */
 .dt-body {
-    padding-top: clamp(28px, 4vw, 48px)
+    padding-top: clamp(28px, 4vw, 48px);
+    /* keeps the closing CTA band off the footer */
+    padding-bottom: clamp(48px, 6vw, 80px)
 }
 
 .dt-sec {
@@ -833,5 +835,49 @@
 
     .dt-actions .btn {
         flex: 1 1 100%
+    }
+
+    /* hospital: the photo above already shows the building, so drop the logo tile on phones */
+    .dt-logo {
+        display: none
+    }
+
+    /* doctor: photo beside the speciality and name, details full width below (no empty space next to the photo) */
+    .dt-head-doc {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        column-gap: 16px;
+        align-items: center
+    }
+
+    .dt-head-doc > .min-w-0 {
+        display: contents
+    }
+
+    .dt-head-doc .dt-photo {
+        grid-row: 1 / span 2;
+        width: 92px;
+        height: 92px;
+        border-radius: 20px
+    }
+
+    .dt-head-doc .lc-spec {
+        grid-column: 2;
+        align-self: end
+    }
+
+    .dt-head-doc h1 {
+        grid-column: 2;
+        align-self: start;
+        margin: 0
+    }
+
+    .dt-head-doc .dt-desig,
+    .dt-head-doc .dt-facts {
+        grid-column: 1 / -1
+    }
+
+    .dt-head-doc .dt-desig {
+        margin-top: 14px
     }
 }

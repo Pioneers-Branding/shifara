@@ -3,6 +3,11 @@
     min-width: 0
 }
 
+/* listing pages end with a CTA band: keep it off the footer */
+main[data-listing] {
+    padding-bottom: clamp(48px, 6vw, 80px)
+}
+
 /* ---------- Page header ---------- */
 .lp-hero {
     background: linear-gradient(180deg, var(--blush) 0%, #fff 100%);
