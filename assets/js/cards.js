@@ -81,7 +81,7 @@ window.ShifaraUI = (() => {
             </div>
             <div class="lc-actions">
                 <a href="${url}" class="btn btn-ghost">View hospital</a>
-                <a href="${HOME}#quote" class="btn btn-coral">Get free quote</a>
+                <a href="/book-consultation/?for=${encodeURIComponent(h.name)}" class="btn btn-coral">Get free quote</a>
             </div>
         </article></div>`;
     }
@@ -106,7 +106,7 @@ window.ShifaraUI = (() => {
             </div>
             <div class="lc-actions">
                 <a href="${url}" class="btn btn-ghost">View profile</a>
-                <a href="${HOME}#quote" class="btn btn-coral">Free opinion</a>
+                <a href="/book-consultation/?for=${encodeURIComponent(d.name)}" class="btn btn-coral">Free opinion</a>
             </div>
         </article></div>`;
     }
@@ -114,7 +114,7 @@ window.ShifaraUI = (() => {
     function treatmentCard(t) {
         const url = link.treatment(t.id);
         return `<div class="col"><article class="lc lc-treat">
-            <a href="${url}" class="lc-img">${t.image ? `<img src="${esc(t.image)}" alt="${esc(t.name)}" loading="lazy">` : ''}<span class="lc-badge">${esc(deptName(t.department))}</span></a>
+            <a href="${url}" class="lc-img">${t.image ? `<img src="${esc(t.image)}" alt="${esc(t.name)}" loading="lazy">` : ''}</a>
             <div class="lc-body">
                 <h3><a href="${url}">${esc(t.name)}</a></h3>
                 ${t.cost ? `<p class="lc-price">Starting from <b>${esc(startingPrice(t.cost))}</b></p>` : ''}

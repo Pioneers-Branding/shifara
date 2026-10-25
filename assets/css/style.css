@@ -60,7 +60,7 @@ svg.i {
 
 .sec-head {
     max-width: 780px;
-    margin: 0 auto clamp(36px, 5vw, 56px);
+    margin: 0 auto 26px;
     text-align: center
 }
 
@@ -129,6 +129,20 @@ svg.i {
 }
 
 /* Buttons */
+/* Every word in button labels starts with a capital ("Get Free Quote") */
+.btn,
+.cc-btn,
+.link-arrow,
+.spec .more,
+.svc-more,
+.mega-all,
+.sm-viewall,
+.sm-filter,
+.fab-wa,
+.mbar a {
+    text-transform: capitalize
+}
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -166,6 +180,14 @@ svg.i {
 .btn-navy:hover {
     background: #0b1d35;
     color: #fff
+}
+
+.btn-arrow svg {
+    transition: transform .25s
+}
+
+.btn-arrow:hover svg {
+    transform: translateX(4px)
 }
 
 .btn-ghost {
@@ -1166,45 +1188,30 @@ svg.i {
 }
 
 .lg {
-    width: clamp(132px, 14vw, 176px);
-    height: clamp(84px, 9vw, 106px);
+    width: clamp(124px, 13vw, 164px);
+    height: clamp(62px, 6.5vw, 78px);
     flex: none;
     background: #fff;
     border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 14px;
+    padding: 8px 16px;
     overflow: hidden;
-    transition: transform .25s, box-shadow .25s
+    transition: transform .25s, box-shadow .25s, border-color .25s
 }
 
 .lg img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    filter: grayscale(1);
-    opacity: .7;
-    transition: filter .3s, opacity .3s
+    object-fit: contain
 }
 
 .lg:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow)
-}
-
-.lg:hover img,
-.lg:focus img {
-    filter: none;
-    opacity: 1
-}
-
-@media (hover:none) {
-    .lg img {
-        filter: none;
-        opacity: 1
-    }
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: transparent
 }
 
 @keyframes scroll {
@@ -1325,37 +1332,15 @@ svg.i {
     position: relative
 }
 
-.tab-btn {
-    background: rgba(255, 255, 255, .08);
-    color: #d7e0ea;
-    border: 1px solid rgba(255, 255, 255, .12);
-    padding: 10px 18px;
-    border-radius: 999px;
-    font-weight: 600;
-    font-size: 14px;
-    transition: .2s;
-    white-space: nowrap
-}
-
-.tab-btn:hover {
-    background: rgba(255, 255, 255, .14)
-}
-
-.tab-btn.on {
-    background: #fff;
-    color: var(--navy);
-    border-color: #fff
-}
-
 .cc {
     height: 100%;
     background: #fff;
     color: var(--ink);
     border-radius: var(--radius);
-    padding: 22px;
+    padding: 18px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     transition: transform .25s, box-shadow .25s
 }
 
@@ -1365,58 +1350,18 @@ svg.i {
     color: var(--ink)
 }
 
-.cc-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px
-}
-
-.cc-ic {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--teal-soft);
-    color: var(--teal-d);
-    display: grid;
-    place-items: center;
-    transition: .25s
-}
-
-.cc-ic svg {
-    width: 24px;
-    height: 24px
-}
-
-.cc:hover .cc-ic {
-    background: var(--navy);
-    color: #fff
-}
-
-.cc .tag {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--coral);
-    background: var(--blush);
-    padding: 5px 10px;
-    border-radius: 999px
-}
-
 .cc h4 {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
     line-height: 1.35;
     color: var(--navy);
-    margin: 0;
-    min-height: 46px
+    margin: 0
 }
 
 .cc-price {
     background: var(--soft);
-    border-radius: 14px;
-    padding: 14px 16px
+    border-radius: 12px;
+    padding: 10px 14px
 }
 
 .cc-price small {
@@ -1428,7 +1373,7 @@ svg.i {
 
 .cc-price b {
     display: block;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 800;
     letter-spacing: -.03em;
     color: var(--navy);
@@ -1448,8 +1393,8 @@ svg.i {
     gap: 8px;
     border: 1.5px solid var(--line);
     border-radius: 999px;
-    padding: 11px 16px;
-    font-size: 14px;
+    padding: 8px 16px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--navy);
     transition: .2s
@@ -1556,27 +1501,6 @@ svg.i {
     background: linear-gradient(180deg, rgba(16, 41, 73, 0) 45%, rgba(16, 41, 73, .55) 100%)
 }
 
-.ps-time {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 255, 255, .95);
-    color: var(--teal-d);
-    font-size: 12px;
-    font-weight: 700;
-    padding: 6px 12px;
-    border-radius: 999px
-}
-
-.ps-time svg {
-    width: 14px;
-    height: 14px
-}
-
 .ps-num {
     position: absolute;
     left: 50%;
@@ -1667,19 +1591,6 @@ svg.i {
     width: 100%;
     height: 100%;
     object-fit: cover
-}
-
-.svc-hero-img .badge-free {
-    position: absolute;
-    left: 18px;
-    bottom: 18px;
-    background: #fff;
-    color: var(--navy);
-    font-size: 13px;
-    font-weight: 700;
-    padding: 8px 14px;
-    border-radius: 999px;
-    box-shadow: var(--shadow)
 }
 
 .svc-hero-body {
@@ -1789,19 +1700,6 @@ svg.i {
 
 .svc-card:hover img {
     transform: scale(1.06)
-}
-
-.svc-card .new {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: .08em;
-    color: #fff;
-    background: var(--teal);
-    padding: 5px 11px;
-    border-radius: 999px
 }
 
 .svc-card-body {
@@ -2024,95 +1922,59 @@ svg.i {
 }
 
 /* ---------- Countries ---------- */
-.ctabs {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 5px;
-    max-width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none
-}
-
-.ctabs::-webkit-scrollbar {
-    display: none
-}
-
-.ctab {
-    border: 0;
-    background: transparent;
-    padding: 9px 16px;
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: 13.5px;
-    color: var(--slate);
-    transition: .2s;
-    white-space: nowrap
-}
-
-.ctab:hover {
-    color: var(--navy)
-}
-
-.ctab.on {
-    background: var(--navy);
-    color: #fff
-}
-
-.ct {
-    height: 100%;
+.cpills {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    max-width: 1080px;
+    margin: 0 auto
+}
+
+.cpill {
+    display: inline-flex;
     align-items: center;
-    text-align: center;
     gap: 10px;
     background: #fff;
     border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 22px 8px 18px;
-    transition: transform .25s, box-shadow .25s, border-color .25s;
-    color: inherit
-}
-
-.ct:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow);
-    border-color: transparent;
-    color: inherit
-}
-
-.ct .flag {
-    width: clamp(44px, 4.5vw, 56px);
-    height: clamp(44px, 4.5vw, 56px);
-    border-radius: 50%;
-    overflow: hidden;
-    box-shadow: 0 0 0 3px #fff, 0 0 0 4px var(--line);
-    background: var(--line)
-}
-
-.ct .flag img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover
-}
-
-.ct b {
-    font-size: clamp(13px, 1.2vw, 15px);
+    border-radius: 999px;
+    padding: 9px 20px 9px 16px;
+    font-size: 15px;
+    font-weight: 500;
     color: var(--navy);
-    line-height: 1.25
+    transition: border-color .2s, box-shadow .2s, color .2s
 }
 
-.ct small {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--teal-d);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px
+.cpill:hover {
+    border-color: var(--teal);
+    box-shadow: var(--shadow);
+    color: var(--navy)
 }
 
-.ct:hover small {
-    color: var(--coral)
+.cpill img {
+    width: 28px;
+    height: 19px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .08);
+    flex: none
+}
+
+@media (max-width: 575.98px) {
+    .cpills {
+        gap: 8px
+    }
+
+    .cpill {
+        font-size: 13.5px;
+        padding: 7px 14px 7px 12px;
+        gap: 8px
+    }
+
+    .cpill img {
+        width: 22px;
+        height: 15px
+    }
 }
 
 .ct-more {
@@ -2222,28 +2084,6 @@ svg.i {
 
 .post:hover .cover>img {
     transform: scale(1.05)
-}
-
-.post .cat {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 255, 255, .95);
-    color: var(--navy);
-    font-size: 12px;
-    font-weight: 700;
-    padding: 6px 12px;
-    border-radius: 999px
-}
-
-.post .cat img {
-    width: 20px;
-    height: 14px;
-    border-radius: 3px;
-    object-fit: cover
 }
 
 .post .body {
@@ -2708,6 +2548,7 @@ svg.i {
 }
 
 @media (max-width: 575.98px) {
+
     .legal table,
     .legal tbody,
     .legal tr,
@@ -2761,32 +2602,6 @@ svg.i {
     width: 100%;
     height: 100%;
     object-fit: cover
-}
-
-.cta-photo-badge {
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, .96);
-    color: var(--navy);
-    border-radius: 14px;
-    padding: 12px 16px;
-    box-shadow: var(--shadow)
-}
-
-.cta-photo-badge b {
-    display: block;
-    font-size: 14px
-}
-
-.cta-photo-badge small {
-    display: block;
-    font-size: 12px;
-    color: var(--slate)
 }
 
 .cta-next {
@@ -2940,7 +2755,7 @@ footer {
         #0b1d35;
     color: #aab6c5;
     padding: 0 0 8px;
-    margin-top: clamp(64px, 8vw, 104px);
+    /* margin-top: clamp(64px, 8vw, 104px); */
     font-size: 14.5px;
     overflow: hidden
 }
@@ -3269,6 +3084,7 @@ footer ul small {
 }
 
 @media (min-width: 768px) {
+
     /* keep the legal links clear of the floating "Need help?" button */
     .fbottom {
         padding-right: 170px

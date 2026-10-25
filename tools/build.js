@@ -7,6 +7,8 @@
 //   hospitals/  doctors/  treatments/            listing pages (filters run in assets/js/listing.js)
 //   hospital/<id>/  doctor/<id>/  treatment/<id>/ detail pages (full content in the HTML)
 //   privacy-policy/  medical-disclaimer/           legal pages (content in tools/pages/<slug>.html)
+//   services/<slug>/                              service pages (content in tools/services.js)
+//   about-us/  concierge/  country-comparison/  partner-with-us/  book-consultation/   company pages (content in tools/pages/<slug>.html)
 //
 // Inputs: ind.html (header + footer), assets/data/catalog.js, assets/data/details/<kind>/<id>.js
 // Every generated page carries a "shifara:generated" marker with a hash of its content. If the file was
@@ -41,8 +43,12 @@ const FOOTER = '    <!-- ================= FOOTER ================= -->';
 if (!home.includes(HERO) || !home.includes(FOOTER)) throw new Error('ind.html is missing the HERO / FOOTER markers');
 // homepage section links (#quote, #cost…) must point back to the homepage from other pages
 const siteAnchors = s => s.replace(/(<a\b[^>]*?\bhref=")#([a-z][\w-]*)"/g, '$1/#$2"');
-const HEAD = siteAnchors(home.slice(0, home.indexOf(HERO)));
-const FOOT = siteAnchors(home.slice(home.indexOf(FOOTER)));
+// assets the homepage hospital finder needs; other pages add their own through layout({ css, js })
+const homeOnly = s => s
+    .replace(/[ \t]*<link rel="stylesheet" href="\/assets\/css\/listing\.css">\n/g, '')
+    .replace(/[ \t]*<script src="\/assets\/(data\/catalog|js\/cards|js\/home-search)\.js"><\/script>\n/g, '');
+const HEAD = homeOnly(siteAnchors(home.slice(0, home.indexOf(HERO))));
+const FOOT = homeOnly(siteAnchors(home.slice(home.indexOf(FOOTER))));
 
 function layout({ title, description, css, js, main }) {
     let head = HEAD
@@ -152,7 +158,7 @@ for (const [page, c] of Object.entries(LISTINGS)) {
                         <p>${c.cta[1]}</p>
                     </div>
                     <div class="d-flex flex-wrap gap-2 flex-none">
-                        <a href="/#quote" class="btn btn-coral">Get free quote</a>
+                        <a href="/book-consultation/" class="btn btn-coral">Get free quote</a>
                         <a href="https://wa.me/919971316164" target="_blank" rel="noopener" class="btn btn-wa"><svg class="i">
                                 <use href="#wa" />
                             </svg> WhatsApp</a>
@@ -197,6 +203,150 @@ ${body.trim().split('\n').map(l => '                ' + l).join('\n')}
     </main>
 `;
     write(`${slug}/index.html`, layout({ title: c.title, description: c.desc, css: ['listing.css'], js: [], main }));
+}
+
+// ---------- Service pages (content in tools/services.js) ----------
+const SERVICES = require('./services.js');
+const icon = (id, cls = '') => `<svg${cls ? ` class="${cls}"` : ''}><use href="#${id}" /></svg>`;
+for (const s of SERVICES) {
+    const others = SERVICES.filter(o => o.slug !== s.slug);
+    const main = `    <!-- ================= SERVICE: ${s.slug} ================= -->
+    <main class="svp">
+        <section class="svp-hero">
+            <div class="container">
+                <div class="row g-4 g-lg-5 align-items-center">
+                    <div class="col-lg-6">
+                        <nav class="lp-crumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/#services">Services</a><span>/</span><span>${esc(s.name)}</span></nav>
+                        <span class="svp-tag">${icon(s.icon)}${esc(s.tag)}</span>
+                        <h1>${esc(s.title)}</h1>
+                        <p class="svp-lead">${esc(s.lead)}</p>
+                        <div class="d-flex flex-wrap gap-2 gap-sm-3">
+                            <a href="/book-consultation/?for=${encodeURIComponent(s.name)}" class="btn btn-coral">Get free help ${icon('arrow', 'i')}</a>
+                            <a href="https://wa.me/919971316164" target="_blank" rel="noopener" class="btn btn-wa">${icon('wa', 'i')}Ask on WhatsApp</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="svp-img"><img src="${esc(s.image)}" alt="${esc(s.imageAlt)}" fetchpriority="high"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="sec">
+            <div class="container">
+                <div class="sec-head">
+                    <span class="eyebrow">What's included</span>
+                    <h2 class="title">How We Help With <em>${esc(s.name)}</em></h2>
+                </div>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 g-lg-4">
+${s.included.map(([h, p]) => `                    <div class="col"><div class="svp-inc">${icon('check')}<div><h3>${esc(h)}</h3><p>${esc(p)}</p></div></div></div>`).join('\n')}
+                </div>
+            </div>
+        </section>
+
+        <section class="sec svp-steps-sec">
+            <div class="container">
+                <div class="sec-head">
+                    <span class="eyebrow">How it works</span>
+                    <h2 class="title">Four Simple <em>Steps</em></h2>
+                </div>
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 g-lg-4">
+${s.steps.map(([h, p], i) => `                    <div class="col"><div class="svp-step"><span class="n">${String(i + 1).padStart(2, '0')}</span><h3>${esc(h)}</h3><p>${esc(p)}</p></div></div>`).join('\n')}
+                </div>
+            </div>
+        </section>
+
+        <section class="sec faq">
+            <div class="container">
+                <div class="row g-4 g-lg-5">
+                    <div class="col-lg-5">
+                        <span class="eyebrow">Who it's for</span>
+                        <h2 class="title text-start">Is ${esc(s.name)} <em>Right for You?</em></h2>
+                        <ul class="svp-who">
+${s.who.map(w => `                            <li>${icon('check')}${esc(w)}</li>`).join('\n')}
+                        </ul>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="accordion" id="svpFaq">
+${s.faqs.map(([q, a], i) => `                            <div class="accordion-item">
+                                <h3 class="accordion-header"><button class="accordion-button${i ? ' collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#sf${i}" aria-expanded="${!i}">${esc(q)}</button></h3>
+                                <div id="sf${i}" class="accordion-collapse collapse${i ? '' : ' show'}" data-bs-parent="#svpFaq">
+                                    <div class="accordion-body">${esc(a)}</div>
+                                </div>
+                            </div>`).join('\n')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="pb-5">
+            <div class="container">
+                <div class="lp-cta d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div>
+                        <h2>Talk to a Shifara case manager</h2>
+                        <p>Share your reports and we'll plan ${esc(s.name.toLowerCase())} around your treatment. Free for patients.</p>
+                    </div>
+                    <a href="/book-consultation/?for=${encodeURIComponent(s.name)}" class="btn btn-coral flex-none">Get free help ${icon('arrow', 'i')}</a>
+                </div>
+                <h2 class="svp-more-title">Other services</h2>
+                <div class="row row-cols-2 row-cols-lg-4 g-3">
+${others.map(o => `                    <div class="col"><a href="/services/${o.slug}/" class="svp-other">${icon(o.icon)}<b>${esc(o.name)}</b></a></div>`).join('\n')}
+                </div>
+            </div>
+        </section>
+    </main>
+`;
+    write(`services/${s.slug}/index.html`, layout({ title: s.title, description: s.desc, css: ['listing.css', 'service.css'], js: [], main }));
+}
+
+// ---------- Company pages (content in tools/pages/<slug>.html) ----------
+const COMPANY = {
+    'about-us': {
+        name: 'About Us', eyebrow: 'About Shifara Health', h1: 'With You, <em>Every Step</em> of the Way',
+        lead: 'We guide international patients through every question, appointment and unfamiliar step of treatment in India.',
+        desc: 'Shifara Health is a medical care companion that connects international patients with accredited hospitals and support services in India, from first contact to follow-up.',
+    },
+    'concierge': {
+        name: 'Concierge', eyebrow: 'Patient assistance', h1: 'Concierge &amp; <em>Care Companion</em>',
+        lead: 'A dedicated care companion for hospital visits, paperwork, billing and daily needs, from your first consultation through recovery.',
+        desc: 'Shifara Health concierge: a dedicated care companion for hospital navigation, care coordination, billing support and medical records during treatment in India.',
+    },
+    'country-comparison': {
+        name: 'Country Comparison', eyebrow: 'Cost & access', h1: 'Treatment Costs: <em>India vs Other Countries</em>',
+        lead: 'Compare indicative treatment prices and waiting times in India, the USA, the UK, Singapore, Thailand and Turkey.',
+        desc: 'Compare indicative medical treatment costs and waiting times in India, the USA, the UK, Singapore, Thailand and Turkey for heart, orthopaedic, transplant, IVF and cosmetic procedures.',
+    },
+    'book-consultation': {
+        name: 'Book Consultation', eyebrow: '100% free · reply within 24 hrs', h1: 'Book a <em>Free Consultation</em>',
+        lead: 'Share a few details about the patient. A Shifara case manager will reply within 24 hours with hospital options and the next steps.',
+        desc: 'Book a free consultation with Shifara Health. Share your medical details and get opinions and written cost estimates from accredited hospitals in India.',
+    },
+    'partner-with-us': {
+        name: 'Partner With Us', eyebrow: 'Partnerships', h1: 'Partner With Us. <em>Together, Healing Gets Easier.</em>',
+        lead: 'Hospitals, recovery homes, caregiver agencies and travel services: join the network that looks after international patients in India.',
+        desc: 'Partner with Shifara Health: hospitals, recovery homes, nursing agencies and travel, visa and interpreter services can join our international patient care network.',
+    },
+};
+for (const [slug, c] of Object.entries(COMPANY)) {
+    const body = read(`tools/pages/${slug}.html`).replace(/\r\n/g, '\n').replace(/^<!--[\s\S]*?-->\n/, '');
+    const main = `    <!-- ================= PAGE: ${slug} ================= -->
+    <main class="cpg">
+        <section class="pg-hero">
+            <div class="container">
+                <nav class="lp-crumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>${c.name}</span></nav>
+                <span class="eyebrow">${esc(c.eyebrow)}</span>
+                <h1>${c.h1}</h1>
+                <p>${esc(c.lead)}</p>
+            </div>
+        </section>
+${body.trim().split('\n').map(l => l ? '        ' + l : l).join('\n')}
+    </main>
+`;
+    write(`${slug}/index.html`, layout({
+        title: c.name === 'Country Comparison' ? 'Treatment Cost Comparison by Country' : c.name,
+        description: c.desc, css: ['listing.css', 'service.css'], js: [], main,
+    }));
 }
 
 // ---------- Detail pages ----------

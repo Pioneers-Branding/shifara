@@ -1,0 +1,650 @@
+/* Shifara Health - service pages (/services/<slug>/). Loaded after style.css and listing.css. */
+
+/* ---------- Hero ---------- */
+.svp-hero {
+    background: radial-gradient(900px 420px at 100% 0%, rgba(235, 104, 97, .13), transparent 62%),
+        radial-gradient(760px 380px at 0% 100%, rgba(234, 216, 208, .75), transparent 62%),
+        radial-gradient(600px 320px at 0% 0%, rgba(72, 181, 178, .08), transparent 60%),
+        linear-gradient(180deg, #fff6f3 0%, #fdf1ed 100%);
+    padding: clamp(28px, 4vw, 48px) 0 clamp(40px, 5vw, 64px)
+}
+
+.svp-hero .lp-crumb {
+    justify-content: flex-start
+}
+
+.svp-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 14px 6px 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 16px
+}
+
+.svp-tag svg {
+    width: 26px;
+    height: 26px;
+    padding: 5px;
+    border-radius: 50%;
+    background: var(--teal-soft);
+    color: var(--teal-d)
+}
+
+.svp-hero h1 {
+    font-weight: 800;
+    font-size: clamp(30px, 4vw, 48px);
+    letter-spacing: -.03em;
+    line-height: 1.12;
+    color: var(--navy);
+    margin: 0 0 16px
+}
+
+.svp-lead {
+    color: var(--slate);
+    font-size: clamp(15px, 1.4vw, 17px);
+    margin: 0 0 26px;
+    max-width: 560px
+}
+
+.svp-img {
+    border-radius: 24px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    box-shadow: var(--shadow-lg)
+}
+
+.svp-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+/* ---------- What's included ---------- */
+.svp-inc {
+    height: 100%;
+    display: flex;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px;
+    transition: box-shadow .25s, border-color .25s
+}
+
+.svp-inc:hover {
+    border-color: transparent;
+    box-shadow: var(--shadow)
+}
+
+.svp-inc > svg {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    padding: 8px;
+    border-radius: 50%;
+    background: var(--teal-soft);
+    color: var(--teal-d)
+}
+
+.svp-inc h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 4px 0 4px
+}
+
+.svp-inc p {
+    font-size: 14px;
+    color: var(--slate);
+    margin: 0
+}
+
+/* ---------- Steps ---------- */
+/* Same backgrounds as the homepage (countries / blog sections) and the hospital page header */
+.svp-steps-sec {
+    background:
+        radial-gradient(900px 420px at 0% 0%, rgba(72, 181, 178, .16), transparent 62%),
+        radial-gradient(760px 380px at 100% 100%, rgba(72, 181, 178, .12), transparent 62%),
+        radial-gradient(600px 300px at 100% 0%, rgba(235, 104, 97, .06), transparent 60%),
+        linear-gradient(180deg, #f1f8f8 0%, #f6fafb 100%)
+}
+
+.svp-hero,
+.pg-hero,
+.svp-steps-sec {
+    position: relative;
+    isolation: isolate
+}
+
+.svp-hero::before,
+.pg-hero::before,
+.svp-steps-sec::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(16, 41, 73, .09) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 40%, #000 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 40%, #000 100%)
+}
+
+/* hero sits flush with the first content section, so give that section its own top spacing */
+.svp-hero + .sec,
+.pg-hero + .sec {
+    padding-top: clamp(48px, 6vw, 80px) !important
+}
+
+.svp-step {
+    height: 100%;
+    background: #fff;
+    border-radius: 18px;
+    padding: 22px
+}
+
+.svp-step .n {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    margin-bottom: 14px
+}
+
+.svp-step h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 6px
+}
+
+.svp-step p {
+    font-size: 14px;
+    color: var(--slate);
+    margin: 0
+}
+
+/* ---------- Who it's for ---------- */
+.svp-who {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0;
+    display: grid;
+    gap: 12px
+}
+
+.svp-who li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    color: var(--ink)
+}
+
+.svp-who svg {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    color: var(--teal-d)
+}
+
+/* ---------- Other services ---------- */
+.flex-none {
+    flex: none
+}
+
+.svp-more-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: clamp(36px, 4vw, 52px) 0 16px
+}
+
+.svp-other {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    color: var(--navy);
+    transition: border-color .2s, box-shadow .2s
+}
+
+.svp-other:hover {
+    border-color: var(--teal);
+    box-shadow: var(--shadow);
+    color: var(--navy)
+}
+
+.svp-other svg {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 9px;
+    border-radius: 12px;
+    background: var(--teal-soft);
+    color: var(--teal-d)
+}
+
+.svp-other b {
+    font-size: 14.5px;
+    line-height: 1.3
+}
+
+/* ---------- Company pages (about, concierge, country comparison, partner) ---------- */
+.pg-hero {
+    background: radial-gradient(900px 420px at 100% 0%, rgba(235, 104, 97, .13), transparent 62%),
+        radial-gradient(760px 380px at 0% 100%, rgba(234, 216, 208, .75), transparent 62%),
+        radial-gradient(600px 320px at 0% 0%, rgba(72, 181, 178, .08), transparent 60%),
+        linear-gradient(180deg, #fff6f3 0%, #fdf1ed 100%);
+    padding: clamp(28px, 4vw, 48px) 0 clamp(40px, 5vw, 64px);
+    text-align: center
+}
+
+.pg-hero h1 {
+    font-weight: 800;
+    font-size: clamp(30px, 4vw, 48px);
+    letter-spacing: -.03em;
+    line-height: 1.12;
+    color: var(--navy);
+    max-width: 900px;
+    margin: 14px auto 14px
+}
+
+.pg-hero h1 em {
+    font-style: normal;
+    color: var(--teal-d)
+}
+
+.pg-hero p {
+    color: var(--slate);
+    font-size: clamp(15px, 1.4vw, 17px);
+    max-width: 680px;
+    margin: 0 auto
+}
+
+.pg-text {
+    color: var(--slate);
+    font-size: 15.5px;
+    line-height: 1.7
+}
+
+.svp-step .n svg {
+    width: 20px;
+    height: 20px
+}
+
+/* Comparison tables */
+.cmp-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: clamp(18px, 2.5vw, 28px);
+    box-shadow: var(--shadow)
+}
+
+.cmp-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px
+}
+
+.cmp-head h2 {
+    font-size: clamp(19px, 2vw, 23px);
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0 0 4px
+}
+
+.cmp-head p {
+    color: var(--slate);
+    font-size: 14px;
+    margin: 0
+}
+
+.cmp-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--teal-d);
+    white-space: nowrap
+}
+
+.cmp-legend i {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: var(--teal-soft);
+    border: 1.5px solid var(--teal)
+}
+
+.cmp-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14.5px
+}
+
+.cmp-table th,
+.cmp-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+    white-space: nowrap
+}
+
+.cmp-table thead th {
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--slate);
+    border-bottom: 2px solid var(--line)
+}
+
+.cmp-table th:first-child {
+    text-align: left;
+    color: var(--navy);
+    font-weight: 600;
+    position: sticky;
+    left: 0;
+    background: #fff
+}
+
+.cmp-table tbody tr:hover td,
+.cmp-table tbody tr:hover th {
+    background: var(--soft)
+}
+
+.cmp-table .in {
+    background: var(--teal-soft);
+    color: var(--teal-d);
+    font-weight: 800
+}
+
+.cmp-table thead .in {
+    color: var(--teal-d);
+    border-radius: 12px 12px 0 0
+}
+
+.cmp-table tbody tr:hover .in {
+    background: #d6efed
+}
+
+.cmp-table tbody tr:last-child th,
+.cmp-table tbody tr:last-child td {
+    border-bottom: 0
+}
+
+.cmp-note {
+    font-size: 13px;
+    color: var(--slate);
+    margin: 16px 0 0
+}
+
+/* Concierge plans */
+.plan {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 26px 24px
+}
+
+.plan-pop {
+    border: 2px solid var(--coral);
+    box-shadow: var(--shadow-lg)
+}
+
+.plan-flag {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--coral);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 999px;
+    white-space: nowrap
+}
+
+.plan h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0 0 10px
+}
+
+.plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line)
+}
+
+.plan-price b {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -.03em;
+    color: var(--navy)
+}
+
+.plan-price span {
+    color: var(--slate);
+    font-size: 14px
+}
+
+.plan ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+    display: grid;
+    gap: 10px;
+    font-size: 14.5px
+}
+
+.plan li {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start
+}
+
+.plan li svg {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    color: var(--teal-d)
+}
+
+.plan .btn {
+    margin-top: auto
+}
+
+/* Partner form */
+.pg-form {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: clamp(20px, 3vw, 32px);
+    box-shadow: var(--shadow-lg)
+}
+
+.about-quote {
+    border-left: 3px solid var(--coral);
+    padding: 4px 0 4px 16px;
+    margin: 20px 0 0;
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 600;
+    color: var(--teal-d)
+}
+
+/* Book consultation */
+.bk-title {
+    font-size: clamp(20px, 2.2vw, 24px);
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0 0 4px
+}
+
+.bk-for {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--teal-soft);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14.5px;
+    color: var(--navy)
+}
+
+.bk-for svg {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    color: var(--teal-d)
+}
+
+.bk-note {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 13px;
+    color: var(--slate);
+    margin: 0
+}
+
+.bk-note svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    color: var(--teal-d)
+}
+
+.bk-ok {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--teal-soft);
+    color: var(--teal-d);
+    display: grid;
+    place-items: center;
+    margin: 0 auto 16px
+}
+
+.bk-ok svg {
+    width: 30px;
+    height: 30px
+}
+
+.bk-steps {
+    list-style: none;
+    counter-reset: bk;
+    padding: 0;
+    margin: 24px 0 28px;
+    display: grid;
+    gap: 18px
+}
+
+.bk-steps li {
+    counter-increment: bk;
+    position: relative;
+    padding-left: 54px;
+    display: grid;
+    gap: 2px
+}
+
+.bk-steps li::before {
+    content: counter(bk, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    display: grid;
+    place-items: center
+}
+
+.bk-steps b {
+    color: var(--navy);
+    font-size: 16px
+}
+
+.bk-steps span {
+    color: var(--slate);
+    font-size: 14px
+}
+
+.bk-contact {
+    display: grid;
+    gap: 10px
+}
+
+.bk-contact a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 16px;
+    color: var(--navy);
+    font-weight: 700;
+    transition: border-color .2s, box-shadow .2s
+}
+
+.bk-contact a:hover {
+    border-color: var(--teal);
+    box-shadow: var(--shadow);
+    color: var(--navy)
+}
+
+.bk-contact svg {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--teal-soft);
+    color: var(--teal-d)
+}
+
+.bk-contact small {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate)
+}

@@ -77,6 +77,9 @@ module.exports = function templates(UI) {
                                 </div>`;
     }
 
+    // every quote / consultation button opens the booking page, telling it what the enquiry is about
+    const bookUrl = subject => '/book-consultation/' + (subject ? '?for=' + encodeURIComponent(subject) : '');
+
     function quoteBox(subject, id = 'dtQuote') {
         return `
                     <div class="dt-quote" id="${id}">
@@ -115,7 +118,7 @@ module.exports = function templates(UI) {
             </section>`;
     }
 
-    function ctaBand(title, text) {
+    function ctaBand(title, text, subject) {
         return `
             <section class="dt-cta">
                 <div class="lp-cta d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
@@ -124,7 +127,7 @@ module.exports = function templates(UI) {
                         <p>${esc(text)}</p>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="#dtQuote" class="btn btn-coral">Get free quote</a>
+                        <a href="${esc(bookUrl(subject))}" class="btn btn-coral">Get free quote</a>
                         <a href="${wa('Hi Shifara, I need help planning treatment in India')}" target="_blank" rel="noopener" class="btn btn-wa">${svg('wa', 'i')} WhatsApp</a>
                     </div>
                 </div>
@@ -168,7 +171,7 @@ module.exports = function templates(UI) {
                     </div>
                 </div>
                 <div class="dt-actions">
-                    <a href="#dtQuote" class="btn btn-coral">Get free quote ${svg('arrow', 'i')}</a>
+                    <a href="${esc(bookUrl(h.name))}" class="btn btn-coral">Get free quote ${svg('arrow', 'i')}</a>
                     <a href="${wa(`Hi Shifara, I want to know more about ${h.name}, ${cityName(h.city)}`)}" target="_blank" rel="noopener" class="btn btn-wa">${svg('wa', 'i')} Message us</a>
                     ${docs.length ? '<a href="#sec-doctors" class="btn btn-ghost">View doctors</a>' : ''}
                 </div>`;
@@ -183,7 +186,6 @@ module.exports = function templates(UI) {
                     <div class="col-lg-5 order-first order-lg-last">
                         <figure class="dt-hosp-media">
                             <div class="dt-hero-img dt-hosp-img"><img src="${esc(x.image)}" alt="${esc(h.name)}, ${esc(cityName(h.city))}" fetchpriority="high"></div>
-                            <span class="dt-hosp-city">${svg('pin')}${esc(cityName(h.city))}</span>
                         </figure>
                     </div>
                 </div>` : intro}
@@ -212,7 +214,7 @@ module.exports = function templates(UI) {
                 </div>
             </div>
             ${related(`Other hospitals in ${cityName(h.city)}`, top(D.hospitals.filter(o => o.city === h.city && o.id !== h.id), 3, byDoctors).map(hospitalCard), listUrl('hospitals', { city: h.city }), `All hospitals in ${cityName(h.city)}`)}
-            ${ctaBand('Not sure this is the right hospital?', 'Send your reports and we will compare up to 3 hospitals with written estimates, free.')}
+            ${ctaBand('Not sure this is the right hospital?', 'Send your reports and we will compare up to 3 hospitals with written estimates, free.', h.name)}
         </div>`;
         return {
             title: h.name,
@@ -248,9 +250,9 @@ module.exports = function templates(UI) {
                     </div>
                 </div>
                 <div class="dt-actions">
-                    <a href="#dtQuote" class="btn btn-coral">Book consultation ${svg('arrow', 'i')}</a>
+                    <a href="${esc(bookUrl(d.name))}" class="btn btn-coral">Book consultation ${svg('arrow', 'i')}</a>
                     <a href="${wa(`Hi Shifara, I want to consult ${d.name} (${d.hospital})`)}" target="_blank" rel="noopener" class="btn btn-wa">${svg('wa', 'i')} Chat on WhatsApp</a>
-                    <a href="#dtQuote" class="btn btn-ghost">${svg('video', 'i')} Video consultation</a>
+                    <a href="${esc(bookUrl('Video consultation with ' + d.name))}" class="btn btn-ghost">${svg('video', 'i')} Video consultation</a>
                 </div>
             </div>
         </section>
@@ -271,7 +273,7 @@ module.exports = function templates(UI) {
                 </div>
             </div>
             ${related(`More ${deptBy[dept]?.noun || ''} specialists`, top(peers, 3, byExperience).map(doctorCard), listUrl('doctors', { department: dept }), 'View all')}
-            ${ctaBand('Want a second opinion first?', 'Share your reports and get a free opinion from a senior specialist before you travel.')}
+            ${ctaBand('Want a second opinion first?', 'Share your reports and get a free opinion from a senior specialist before you travel.', d.name)}
         </div>`;
         return {
             title: `${d.name}, ${d.speciality}`,
@@ -301,7 +303,7 @@ module.exports = function templates(UI) {
                         ${x.tagline ? `<p class="dt-tagline">${esc(x.tagline)}</p>` : ''}
                         ${t.cost ? `<div class="dt-price"><small>Starting from</small><b>${esc(startingPrice(t.cost))}</b><span>Package range ${esc(t.cost)} · indicative</span></div>` : ''}
                         <div class="dt-actions">
-                            <a href="#dtQuote" class="btn btn-coral">Get free treatment plan ${svg('arrow', 'i')}</a>
+                            <a href="${esc(bookUrl(t.name))}" class="btn btn-coral">Get free treatment plan ${svg('arrow', 'i')}</a>
                             <a href="${wa(`Hi Shifara, I need information about ${t.name} in India`)}" target="_blank" rel="noopener" class="btn btn-wa">${svg('wa', 'i')} Talk to an advisor</a>
                         </div>
                     </div>
@@ -376,7 +378,7 @@ module.exports = function templates(UI) {
             ${related(`Hospitals for ${t.name}`, hosps.map(hospitalCard), listUrl('hospitals', { treatment: t.id }), 'All hospitals')}
             ${related(`${deptBy[dept]?.noun || ''} specialists`, docs.map(doctorCard), listUrl('doctors', { treatment: t.id }), 'All doctors')}
             ${related('Related treatments', others.map(treatmentCard), listUrl('treatments', { department: dept }), 'View all', 'row-cols-1 row-cols-sm-2 row-cols-lg-4')}
-            ${ctaBand(`Planning ${t.name} in India?`, 'Tell us about your condition and we will send a treatment plan and cost estimate within 48 hours, free.')}
+            ${ctaBand(`Planning ${t.name} in India?`, 'Tell us about your condition and we will send a treatment plan and cost estimate within 48 hours, free.', t.name)}
         </div>`;
         return {
             title: `${t.name} in India: cost, hospitals & doctors`,

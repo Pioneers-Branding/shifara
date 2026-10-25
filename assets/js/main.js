@@ -53,35 +53,50 @@ function formSubmit(e) {
     return false;
 }
 
-// Cost tabs
-document.querySelectorAll('#costTabs .tab-btn').forEach(t => t.addEventListener('click', () => {
-    document.querySelectorAll('#costTabs .tab-btn').forEach(x => x.classList.remove('on'));
-    t.classList.add('on');
-    const f = t.dataset.f;
-    document.querySelectorAll('.cc-col').forEach(c => c.classList.toggle('d-none', f !== 'all' && c.dataset.c !== f));
-}));
+// Forms on the company pages (about, partner): swap the fields for the thank-you note
+function pageFormSubmit(e) {
+    e.preventDefault();
+    // TODO: send to the CRM / form endpoint, with consent: true and a timestamp
+    const f = e.target;
+    f.querySelector('[data-fields]').classList.add('d-none');
+    f.querySelector('[data-ok]').classList.remove('d-none');
+    return false;
+}
 
-// Countries: [ISO code, name, region]
+// Book consultation page: show what the enquiry is about (?for=…) and preselect the country (?country=…)
+(() => {
+    const form = document.getElementById('bookForm');
+    if (!form) return;
+    const q = new URLSearchParams(location.search);
+    const about = (q.get('for') || '').trim().slice(0, 120);
+    if (about) {
+        document.getElementById('bkFor').value = about;
+        document.getElementById('bkForText').textContent = about;
+        document.getElementById('bkForWrap').classList.remove('d-none');
+    }
+    const country = q.get('country');
+    const sel = document.getElementById('bkCountry');
+    if (country && [...sel.options].some(o => o.value === country)) sel.value = country;
+})();
+
+// Countries: [ISO code, name]
 const COUNTRIES = [
-    ['bd', 'Bangladesh', 'sa'],
-    ['ng', 'Nigeria', 'af'], ['ke', 'Kenya', 'af'], ['et', 'Ethiopia', 'af'], ['tz', 'Tanzania', 'af'],
-    ['ug', 'Uganda', 'af'], ['gh', 'Ghana', 'af'], ['sd', 'Sudan', 'af'], ['so', 'Somalia', 'af']
+    ['bd', 'Bangladesh'],
+    ['iq', 'Iraq'], ['ir', 'Iran'], ['sa', 'Saudi Arabia'], ['ye', 'Yemen'], ['om', 'Oman'],
+    ['ng', 'Nigeria'], ['ke', 'Kenya'], ['et', 'Ethiopia'], ['tz', 'Tanzania'], ['ug', 'Uganda'],
+    ['gh', 'Ghana'], ['sd', 'Sudan'], ['ss', 'South Sudan'], ['so', 'Somalia'], ['rw', 'Rwanda'],
+    ['zm', 'Zambia'], ['zw', 'Zimbabwe'], ['cm', 'Cameroon'], ['cd', 'DR Congo'], ['mz', 'Mozambique'],
+    ['mw', 'Malawi'], ['eg', 'Egypt']
 ];
 const ctryGrid = document.getElementById('ctryGrid');
 if (ctryGrid) {
-    COUNTRIES.forEach(([code, name, region]) => {
-        const col = document.createElement('div');
-        col.className = 'col';
-        col.dataset.r = region;
-        col.innerHTML = `<a href="#" class="ct"><span class="flag"><img src="/assets/images/flags/${code}.png" alt="${name} flag" loading="lazy"></span><b>${name}</b><small class="d-none d-md-inline-flex">Visa guide <svg class="i" style="width:13px;height:13px"><use href="#arrow"/></svg></small></a>`;
-        ctryGrid.appendChild(col);
+    COUNTRIES.forEach(([code, name]) => {
+        const a = document.createElement('a');
+        a.href = '/book-consultation/?country=' + encodeURIComponent(name);
+        a.className = 'cpill';
+        a.innerHTML = `<img src="/assets/images/flags/${code}.png" alt="" loading="lazy">${name}`;
+        ctryGrid.appendChild(a);
     });
-    document.querySelectorAll('#ctryTabs .ctab').forEach(t => t.addEventListener('click', () => {
-        document.querySelectorAll('#ctryTabs .ctab').forEach(x => x.classList.remove('on'));
-        t.classList.add('on');
-        const r = t.dataset.r;
-        ctryGrid.querySelectorAll('.col').forEach(c => c.classList.toggle('d-none', r !== 'all' && c.dataset.r !== r));
-    }));
 }
 
 // ---------- Site search (modelled on vaidam.com) ----------

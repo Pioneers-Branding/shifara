@@ -1,0 +1,105 @@
+<!-- Book consultation. Every "Get free quote" / consultation button on the site links here, optionally with ?for=<doctor, hospital, treatment or service> and ?country=<name>, which assets/js/main.js shows above the form and sends with the enquiry. -->
+<section class="sec">
+    <div class="container">
+        <div class="row g-4 g-lg-5 align-items-start">
+            <div class="col-lg-7 order-lg-last">
+                <form class="pg-form" id="bookForm" onsubmit="return pageFormSubmit(event)">
+                    <div class="row g-3" data-fields>
+                        <div class="col-12">
+                            <h2 class="bk-title">Request a Free Consultation</h2>
+                            <p class="pg-text mb-0">Takes 2 minutes. No obligation, no cost to you.</p>
+                        </div>
+                        <div class="col-12 d-none" id="bkForWrap">
+                            <div class="bk-for"><svg><use href="#doc" /></svg><span>You're asking about: <b id="bkForText"></b></span></div>
+                            <input type="hidden" id="bkFor" name="for">
+                        </div>
+                        <div class="col-md-6"><label class="form-label" for="bkName">Patient's full name</label><input class="form-control" id="bkName" name="name" required placeholder="Full name"></div>
+                        <div class="col-md-6"><label class="form-label" for="bkCountry">Country</label>
+                            <select class="form-select" id="bkCountry" name="country" required>
+                                <option value="">Select your country</option>
+                                <option>Bangladesh</option>
+                                <option>Iraq</option>
+                                <option>Iran</option>
+                                <option>Saudi Arabia</option>
+                                <option>Yemen</option>
+                                <option>Oman</option>
+                                <option>Nigeria</option>
+                                <option>Kenya</option>
+                                <option>Ethiopia</option>
+                                <option>Tanzania</option>
+                                <option>Uganda</option>
+                                <option>Ghana</option>
+                                <option>Sudan</option>
+                                <option>South Sudan</option>
+                                <option>Somalia</option>
+                                <option>Rwanda</option>
+                                <option>Zambia</option>
+                                <option>Zimbabwe</option>
+                                <option>Cameroon</option>
+                                <option>DR Congo</option>
+                                <option>Mozambique</option>
+                                <option>Malawi</option>
+                                <option>Egypt</option>
+                                <option>Other</option>
+                            </select></div>
+                        <div class="col-md-6"><label class="form-label" for="bkPhone">Phone / WhatsApp</label><input class="form-control" id="bkPhone" name="phone" type="tel" required placeholder="With country code"></div>
+                        <div class="col-md-6"><label class="form-label" for="bkEmail">Email</label><input class="form-control" id="bkEmail" name="email" type="email" placeholder="you@email.com"></div>
+                        <div class="col-md-6"><label class="form-label" for="bkTreat">Treatment needed</label>
+                            <select class="form-select" id="bkTreat" name="treatment">
+                                <option value="">Select a treatment</option>
+                                <option>Cardiac / Heart</option>
+                                <option>Cancer care</option>
+                                <option>Orthopaedics (knee, hip)</option>
+                                <option>Spine surgery</option>
+                                <option>Neurosurgery</option>
+                                <option>Organ transplant</option>
+                                <option>IVF &amp; fertility</option>
+                                <option>Cosmetic surgery</option>
+                                <option>Dental care</option>
+                                <option>Eye care</option>
+                                <option>Other / Not sure</option>
+                            </select></div>
+                        <div class="col-md-6"><label class="form-label" for="bkWhen">When do you plan to travel?</label>
+                            <select class="form-select" id="bkWhen" name="when">
+                                <option value="">Select</option>
+                                <option>As soon as possible</option>
+                                <option>Within 1 month</option>
+                                <option>In 1–3 months</option>
+                                <option>Just exploring options</option>
+                            </select></div>
+                        <div class="col-12"><label class="form-label" for="bkMsg">Your medical concern</label><textarea class="form-control" id="bkMsg" name="message" rows="4" placeholder="Tell us briefly about the condition, the treatment your doctor advised and any recent reports"></textarea></div>
+                        <div class="col-12">
+                            <div class="form-check consent-check">
+                                <input class="form-check-input" type="checkbox" id="bkConsent" name="consent" required>
+                                <label class="form-check-label" for="bkConsent">I consent to Shifara Health using my details and health information to prepare a treatment plan, share it with the hospitals and doctors I choose, and contact me. If the patient is under 18, I am their parent or guardian. <a href="/privacy-policy/">Privacy Policy</a></label>
+                            </div>
+                        </div>
+                        <div class="col-12"><button type="submit" class="btn btn-coral w-100">Book free consultation <svg class="i"><use href="#arrow" /></svg></button></div>
+                        <div class="col-12"><p class="bk-note"><svg><use href="#shield" /></svg>Your reports are shared only with the hospitals you approve. You can send reports on WhatsApp after submitting.</p></div>
+                    </div>
+                    <div class="text-center py-5 d-none" data-ok>
+                        <div class="bk-ok"><svg><use href="#check" /></svg></div>
+                        <h3>Request received</h3>
+                        <p class="pg-text">A Shifara case manager will contact you within 24 hours.</p>
+                        <a href="https://wa.me/919971316164" target="_blank" rel="noopener" class="btn btn-wa"><svg class="i"><use href="#wa" /></svg>Send reports on WhatsApp</a>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-5">
+                <span class="eyebrow">What happens next</span>
+                <h2 class="title text-start">From Request to <em>Treatment Plan</em></h2>
+                <ol class="bk-steps">
+                    <li><b>We review your case</b><span>A case manager reads your details and asks for any reports needed.</span></li>
+                    <li><b>Hospitals give opinions</b><span>Up to 3 JCI or NABH accredited hospitals review your reports.</span></li>
+                    <li><b>You get a written estimate</b><span>Compare treatment plans, stay length and costs, usually within 48 hours.</span></li>
+                    <li><b>We plan your trip</b><span>Visa letter, travel and stay, once you choose a hospital.</span></li>
+                </ol>
+                <div class="bk-contact">
+                    <a href="https://wa.me/919971316164" target="_blank" rel="noopener"><svg><use href="#wa" /></svg><span><small>WhatsApp</small>Chat with a case manager</span></a>
+                    <a href="tel:+919971316164"><svg><use href="#phone" /></svg><span><small>Call us 24/7</small>+91 99713 16164</span></a>
+                    <a href="mailto:mail@shifarahealth.com"><svg><use href="#mail" /></svg><span><small>Email</small>mail@shifarahealth.com</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,82 @@
+<!-- Partner with us. Content from the live shifarahealth.com/partner-with-us/ page. Form submission still needs a CRM endpoint (see pageFormSubmit in assets/js/main.js). -->
+<section class="sec pt-0">
+    <div class="container">
+        <div class="sec-head">
+            <span class="eyebrow">Who can partner</span>
+            <h2 class="title">Join Our Care <em>Network</em></h2>
+            <p class="lead-text">We bring hospitals, recovery homes, caregivers and travel services together to look after
+                international patients from arrival to recovery.</p>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 g-3 g-lg-4">
+            <div class="col"><div class="svp-inc"><svg><use href="#shield" /></svg><div><h3>Hospitals &amp; specialty clinics</h3><p>Receive international patient referrals with complete case files and translated reports.</p></div></div></div>
+            <div class="col"><div class="svp-inc"><svg><use href="#home" /></svg><div><h3>Recovery &amp; rehabilitation properties</h3><p>List your recovery home. We manage bookings, quality checks and post-discharge coordination.</p></div></div></div>
+            <div class="col"><div class="svp-inc"><svg><use href="#nurse" /></svg><div><h3>Nursing &amp; caregiver agencies</h3><p>Join our verified roster of nurses and caregivers for regular assignments and prompt payments.</p></div></div></div>
+            <div class="col"><div class="svp-inc"><svg><use href="#car" /></svg><div><h3>Travel, visa &amp; interpreter services</h3><p>Hotels, transfers, visa support and language partners can become preferred service partners.</p></div></div></div>
+        </div>
+    </div>
+</section>
+
+<section class="sec svp-steps-sec">
+    <div class="container">
+        <div class="sec-head">
+            <span class="eyebrow">Why partner with us</span>
+            <h2 class="title">What Partners <em>Get</em></h2>
+        </div>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 g-lg-4">
+            <div class="col"><div class="svp-step"><span class="n"><svg class="i"><use href="#user" /></svg></span><h3>Qualified referrals</h3><p>Patient enquiries from Africa, Bangladesh and the Middle East, reviewed before they reach you.</p></div></div>
+            <div class="col"><div class="svp-step"><span class="n"><svg class="i"><use href="#globe" /></svg></span><h3>One coordinating team</h3><p>Translations, visas, airport pickup, hospital coordination and follow-ups handled by us.</p></div></div>
+            <div class="col"><div class="svp-step"><span class="n"><svg class="i"><use href="#chat" /></svg></span><h3>Clear communication</h3><p>Regular updates between patients, hospitals and care advisors at every stage.</p></div></div>
+            <div class="col"><div class="svp-step"><span class="n"><svg class="i"><use href="#heart" /></svg></span><h3>Shared standards</h3><p>A quality framework that reviews and recognises partners who deliver consistent, caring service.</p></div></div>
+        </div>
+    </div>
+</section>
+
+<section class="sec" id="apply">
+    <div class="container">
+        <div class="row g-4 g-lg-5 align-items-start">
+            <div class="col-lg-5">
+                <span class="eyebrow">Become a partner</span>
+                <h2 class="title text-start">Tell Us About <em>Your Organisation</em></h2>
+                <p class="pg-text">Fill in the short form and our partnerships team will get back to you within one business day.</p>
+                <ul class="svp-who">
+                    <li><svg><use href="#check" /></svg>A dedicated partner success manager</li>
+                    <li><svg><use href="#check" /></svg>Visibility across Shifara's patient channels</li>
+                    <li><svg><use href="#check" /></svg>A network of verified, reviewed partners only</li>
+                    <li><svg><use href="#check" /></svg>Access to patients from Africa, Bangladesh and the Middle East</li>
+                </ul>
+            </div>
+            <div class="col-lg-7">
+                <form class="pg-form" id="partnerForm" onsubmit="return pageFormSubmit(event)">
+                    <div class="row g-3" data-fields>
+                        <div class="col-md-6"><label class="form-label" for="pfName">Full name</label><input class="form-control" id="pfName" required placeholder="Your name"></div>
+                        <div class="col-md-6"><label class="form-label" for="pfOrg">Organisation</label><input class="form-control" id="pfOrg" required placeholder="Hospital, clinic or company"></div>
+                        <div class="col-md-6"><label class="form-label" for="pfType">Partner type</label>
+                            <select class="form-select" id="pfType" required>
+                                <option value="">Select type</option>
+                                <option>Hospital / specialty clinic</option>
+                                <option>Recovery / rehabilitation property</option>
+                                <option>Nursing / caregiver agency</option>
+                                <option>Travel, visa or interpreter service</option>
+                                <option>Other</option>
+                            </select></div>
+                        <div class="col-md-6"><label class="form-label" for="pfCity">City</label><input class="form-control" id="pfCity" placeholder="e.g. Gurugram"></div>
+                        <div class="col-md-6"><label class="form-label" for="pfEmail">Email</label><input class="form-control" id="pfEmail" type="email" required placeholder="you@company.com"></div>
+                        <div class="col-md-6"><label class="form-label" for="pfPhone">Phone / WhatsApp</label><input class="form-control" id="pfPhone" type="tel" required placeholder="With country code"></div>
+                        <div class="col-12"><label class="form-label" for="pfMsg">Message</label><textarea class="form-control" id="pfMsg" rows="3" placeholder="Tell us about your services"></textarea></div>
+                        <div class="col-12">
+                            <div class="form-check consent-check">
+                                <input class="form-check-input" type="checkbox" id="pfConsent" required>
+                                <label class="form-check-label" for="pfConsent">I consent to Shifara Health using these details to contact me about a partnership, as described in the <a href="/privacy-policy/">Privacy Policy</a>.</label>
+                            </div>
+                        </div>
+                        <div class="col-12"><button type="submit" class="btn btn-coral w-100">Send partner request</button></div>
+                    </div>
+                    <div class="text-center py-5 d-none" data-ok>
+                        <h3>Thank you!</h3>
+                        <p class="pg-text mb-0">Our partnerships team will contact you within one business day.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>

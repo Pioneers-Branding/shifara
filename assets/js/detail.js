@@ -13,12 +13,6 @@
         f.nextElementSibling.classList.remove('d-none');
     }));
 
-    // Focus first input when clicking quote CTA
-    root.querySelectorAll('a[href="#dtQuote"]').forEach(btn => btn.addEventListener('click', () => {
-        const inp = root.querySelector('#dtQuote input[name="name"]');
-        if (inp) setTimeout(() => inp.focus(), 150);
-    }));
-
     // Hospital page: filter the doctors by department (first 6 shown)
     const chips = root.querySelector('#dtDocChips');
     if (chips) {
