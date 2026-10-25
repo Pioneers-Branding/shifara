@@ -22,7 +22,7 @@ function resolve(urlPath) {
     if (!full.startsWith(ROOT)) return { status: 403 };
     if (isDir(full)) {
         if (!urlPath.endsWith('/')) return { redirect: urlPath + '/' };
-        for (const index of ['index.html', 'ind.html']) {
+        for (const index of ['index.html']) {
             if (isFile(path.join(full, index))) return { file: path.join(full, index) };
         }
     }

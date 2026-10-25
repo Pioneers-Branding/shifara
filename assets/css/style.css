@@ -331,11 +331,11 @@ svg.i {
     background: rgba(255, 255, 255, .94);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--line);
-    padding: 12px 0
+    padding: 1px 0
 }
 
 .site-nav .navbar-brand img {
-    height: 44px;
+    height: 65px;
     width: auto
 }
 
@@ -492,6 +492,7 @@ svg.i {
 }
 
 @media (max-width:991.98px) {
+
     /* the navbar is sticky, so an open menu taller than the screen could never be scrolled:
        let the menu itself scroll between the header and the fixed mobile bar */
     .site-nav .navbar-collapse {

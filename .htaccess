@@ -2,7 +2,7 @@
 #   /hospital/<id>/  /doctor/<id>/  /treatment/<id>/   real folders, served as they are (index.html)
 #   /hospitals/  /doctors/  /treatments/                real folders (listing pages)
 #   /hospitals/cardiology/delhi/ …                      no folder -> the listing page; filters are read from the path
-DirectoryIndex index.html ind.html
+DirectoryIndex index.html
 
 <IfModule mod_rewrite.c>
     RewriteEngine On

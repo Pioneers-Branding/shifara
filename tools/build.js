@@ -10,7 +10,7 @@
 //   services/<slug>/                              service pages (content in tools/services.js)
 //   about-us/  concierge/  country-comparison/  partner-with-us/  book-consultation/   company pages (content in tools/pages/<slug>.html)
 //
-// Inputs: ind.html (header + footer), assets/data/catalog.js, assets/data/details/<kind>/<id>.js
+// Inputs: index.html (header + footer), assets/data/catalog.js, assets/data/details/<kind>/<id>.js
 // Every generated page carries a "shifara:generated" marker with a hash of its content. If the file was
 // changed by hand since the last build, the hash no longer matches and the page is skipped (unless --force).
 const fs = require('fs');
@@ -37,10 +37,10 @@ function detailData(kind, id) {
 }
 
 // ---------- Layout from the homepage ----------
-const home = read('ind.html').replace(/\r\n/g, '\n');
+const home = read('index.html').replace(/\r\n/g, '\n');
 const HERO = '    <!-- ================= HERO ================= -->';
 const FOOTER = '    <!-- ================= FOOTER ================= -->';
-if (!home.includes(HERO) || !home.includes(FOOTER)) throw new Error('ind.html is missing the HERO / FOOTER markers');
+if (!home.includes(HERO) || !home.includes(FOOTER)) throw new Error('index.html is missing the HERO / FOOTER markers');
 // homepage section links (#quote, #cost…) must point back to the homepage from other pages
 const siteAnchors = s => s.replace(/(<a\b[^>]*?\bhref=")#([a-z][\w-]*)"/g, '$1/#$2"');
 // assets the homepage hospital finder needs; other pages add their own through layout({ css, js })
@@ -59,7 +59,7 @@ function layout({ title, description, css, js, main }) {
     const foot = FOOT.replace(/(    <script src="\/assets\/js\/main.js"><\/script>\n)/,
         '$1' + js.map(j => `    <script src="${j}"></script>\n`).join(''));
     if (!js.every(j => foot.includes(j)) || !css.every(c => head.includes(c))) {
-        throw new Error('Could not add page CSS/JS: ind.html must keep the style.css <link> and main.js <script> tags');
+        throw new Error('Could not add page CSS/JS: index.html must keep the style.css <link> and main.js <script> tags');
     }
     return head + main + '\n' + foot;
 }
