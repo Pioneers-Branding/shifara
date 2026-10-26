@@ -1,8 +1,11 @@
 // Local dev server with the same URL rules as .htaccess. No dependencies.
 // Run:  node server.js        then open http://localhost:3000
+// (Optional: every page also works on any plain static server or from disk; this adds the rewrites below.)
 //
 //   /hospital/<id>/, /doctor/<id>/, /treatment/<id>/  -> real folders (index.html)
-//   /hospitals/<filters…>/ etc.                         -> hospitals/index.html (filters read by listing.js)
+//   /hospitals/<filters…>/ etc.                         -> real folder if generated, else redirect to
+//                                                          /hospitals/?path=<filters…> (listing.js shows the clean URL)
+//   anything else missing                               -> 404.html
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -27,15 +30,24 @@ function resolve(urlPath) {
         }
     }
     if (isFile(full)) return { file: full };
-    const listing = urlPath.match(/^\/(hospitals|doctors|treatments)\//);
-    if (listing) return { file: path.join(ROOT, listing[1], 'index.html') };
+    // pages use relative links, so the listing page is opened from its own folder rather than rewritten
+    const listing = urlPath.match(/^\/(hospitals|doctors|treatments)\/(.+)$/);
+    if (listing) return { redirect: `/${listing[1]}/?path=${encodeURIComponent(listing[2])}`, temporary: true };
     return { status: 404 };
 }
 
 http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
     const r = resolve(decodeURIComponent(url.pathname));
-    if (r.redirect) { res.writeHead(301, { Location: r.redirect + url.search }); return res.end(); }
+    if (r.redirect) {
+        const search = r.temporary ? url.search.replace('?', '&') : url.search;
+        res.writeHead(r.temporary ? 302 : 301, { Location: r.redirect + search });
+        return res.end();
+    }
+    if (r.status === 404 && isFile(path.join(ROOT, '404.html'))) {
+        res.writeHead(404, { 'Content-Type': TYPES['.html'] });
+        return fs.createReadStream(path.join(ROOT, '404.html')).pipe(res);
+    }
     if (!r.file) {
         res.writeHead(r.status, { 'Content-Type': 'text/plain; charset=utf-8' });
         return res.end(r.status === 404 ? '404 Not found: ' + url.pathname : 'Forbidden');

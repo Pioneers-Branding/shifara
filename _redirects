@@ -1,0 +1,5 @@
+# Netlify: filter URLs without their own folder open the listing page, which reads ?path= and shows the
+# clean URL again (real files and folders win over these rules). Without this file, 404.html does the same.
+/hospitals/*   /hospitals/?path=:splat   302
+/doctors/*     /doctors/?path=:splat     302
+/treatments/*  /treatments/?path=:splat  302

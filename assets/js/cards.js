@@ -1,10 +1,17 @@
 // Shifara Health - shared helpers and card templates for listing and detail pages.
 // Needs assets/data/catalog.js (window.SHIFARA) loaded first.
+// Site root, worked out from this script's own URL (…/assets/js/cards.js), so the site runs at a domain root,
+// in a subfolder or from disk. '/' when build.js runs this file in Node; the build makes the links relative.
+window.SHIFARA_BASE = window.SHIFARA_BASE || (typeof document !== 'undefined' && document.currentScript
+    ? new URL('../../', document.currentScript.src).pathname : '/');
 window.ShifaraUI = (() => {
     const D = window.SHIFARA;
     if (!D) return null;
 
-    const HOME = '/';
+    const BASE = window.SHIFARA_BASE;
+    const HOME = BASE;
+    // catalog paths are written from the site root ("/assets/…")
+    const asset = p => p && p[0] === '/' ? BASE + p.slice(1) : p;
     const WA = 'https://wa.me/919971316164';
     const by = (arr, key = 'id') => Object.fromEntries(arr.map(x => [x[key], x]));
     const deptBy = by(D.departments, 'slug');
@@ -20,11 +27,12 @@ window.ShifaraUI = (() => {
     // Clean, folder-style URLs:
     //   /hospital/<id>/  /doctor/<id>/  /treatment/<id>/  -> real folders with their own index.html
     //   /hospitals/<department>/<treatment>/<city>/  /doctors/.../<hospital>/  /treatments/<department>/
-    //     -> the listing folder's index.html (.htaccess / server.js), filters read from the path
+    //     -> a generated folder when some page links to it, otherwise the listing folder's index.html
+    //        (.htaccess / server.js / 404.html); filters are read from the path
     const link = {
-        hospital: id => `/hospital/${id}/`,
-        doctor: id => `/doctor/${id}/`,
-        treatment: id => `/treatment/${id}/`,
+        hospital: id => `${BASE}hospital/${id}/`,
+        doctor: id => `${BASE}doctor/${id}/`,
+        treatment: id => `${BASE}treatment/${id}/`,
     };
     const SEGMENT_ORDER = ['department', 'treatment', 'city', 'hospital'];
     function listUrl(type, f = {}, extra = {}) {
@@ -35,11 +43,14 @@ window.ShifaraUI = (() => {
         const qs = new URLSearchParams();
         if (extra.q) qs.set('q', extra.q);
         if (extra.sort) qs.set('sort', extra.sort);
-        return `/${type}/${parts.length ? parts.join('/') + '/' : ''}${qs.toString() ? '?' + qs : ''}`;
+        return `${BASE}${type}/${parts.length ? parts.join('/') + '/' : ''}${qs.toString() ? '?' + qs : ''}`;
     }
+    // Path below the site root: "/sub/hospitals/delhi/index.html" -> "hospitals/delhi/"
+    const sitePath = (pathname = location.pathname) =>
+        (pathname.startsWith(BASE) ? pathname.slice(BASE.length) : pathname.replace(/^\//, '')).replace(/index\.html$/, '');
     // Read filters back from a path such as /hospitals/cardiology/delhi/page/2
     function readFilters(pathname) {
-        const segs = pathname.split('/').filter(Boolean).slice(1).map(decodeURIComponent);
+        const segs = sitePath(pathname).split('/').filter(Boolean).slice(1).map(decodeURIComponent);
         const out = {};
         for (let i = 0; i < segs.length; i++) {
             const s = segs[i];
@@ -51,7 +62,7 @@ window.ShifaraUI = (() => {
         }
         return out;
     }
-    const pathId = () => decodeURIComponent(location.pathname.split('/').filter(Boolean)[1] || '');
+    const pathId = () => decodeURIComponent(sitePath().split('/').filter(Boolean)[1] || '');
     const wa = text => `${WA}?text=${encodeURIComponent(text)}`;
     const startingPrice = range => (range || '').split(/[–-]/)[0].trim();
 
@@ -68,7 +79,7 @@ window.ShifaraUI = (() => {
         const url = link.hospital(h.id);
         return `<div class="col"><article class="lc">
             <div class="lc-head">
-                <a href="${url}" class="lc-logo"><img src="${esc(h.logo)}" alt="${esc(h.name)} logo" loading="lazy"></a>
+                <a href="${url}" class="lc-logo"><img src="${esc(asset(h.logo))}" alt="${esc(h.name)} logo" loading="lazy"></a>
                 <div class="min-w-0">
                     <h3><a href="${url}">${esc(h.name)}</a></h3>
                     <p class="lc-loc">${svg('pin')}${esc(h.address || cityName(h.city))}</p>
@@ -81,14 +92,14 @@ window.ShifaraUI = (() => {
             </div>
             <div class="lc-actions">
                 <a href="${url}" class="btn btn-ghost">View hospital</a>
-                <a href="/book-consultation/?for=${encodeURIComponent(h.name)}" class="btn btn-coral">Get free quote</a>
+                <a href="${BASE}book-consultation/?for=${encodeURIComponent(h.name)}" class="btn btn-coral">Get free quote</a>
             </div>
         </article></div>`;
     }
 
     function doctorCard(d) {
         const url = link.doctor(d.id);
-        const photo = d.image ? `<img src="${esc(d.image)}" alt="${esc(d.name)}" loading="lazy">` : `<span class="lc-initials">${esc(initials(d.name))}</span>`;
+        const photo = d.image ? `<img src="${esc(asset(d.image))}" alt="${esc(d.name)}" loading="lazy">` : `<span class="lc-initials">${esc(initials(d.name))}</span>`;
         const hosp = d.hospitalId ? `<a href="${link.hospital(d.hospitalId)}">${esc(d.hospital)}</a>` : esc(d.hospital);
         return `<div class="col"><article class="lc lc-doc">
             <div class="lc-head">
@@ -106,7 +117,7 @@ window.ShifaraUI = (() => {
             </div>
             <div class="lc-actions">
                 <a href="${url}" class="btn btn-ghost">View profile</a>
-                <a href="/book-consultation/?for=${encodeURIComponent(d.name)}" class="btn btn-coral">Free opinion</a>
+                <a href="${BASE}book-consultation/?for=${encodeURIComponent(d.name)}" class="btn btn-coral">Free opinion</a>
             </div>
         </article></div>`;
     }
@@ -114,7 +125,7 @@ window.ShifaraUI = (() => {
     function treatmentCard(t) {
         const url = link.treatment(t.id);
         return `<div class="col"><article class="lc lc-treat">
-            <a href="${url}" class="lc-img">${t.image ? `<img src="${esc(t.image)}" alt="${esc(t.name)}" loading="lazy">` : ''}</a>
+            <a href="${url}" class="lc-img">${t.image ? `<img src="${esc(asset(t.image))}" alt="${esc(t.name)}" loading="lazy">` : ''}</a>
             <div class="lc-body">
                 <h3><a href="${url}">${esc(t.name)}</a></h3>
                 ${t.cost ? `<p class="lc-price">Starting from <b>${esc(startingPrice(t.cost))}</b></p>` : ''}
@@ -127,7 +138,7 @@ window.ShifaraUI = (() => {
     }
 
     return {
-        D, HOME, WA, deptBy, cityBy, hospBy, treatBy, docBy, esc, svg, deptName, cityName, link, listUrl, readFilters, pathId, wa, startingPrice,
+        D, BASE, HOME, asset, sitePath, WA, deptBy, cityBy, hospBy, treatBy, docBy, esc, svg, deptName, cityName, link, listUrl, readFilters, pathId, wa, startingPrice,
         initials, hospitalCard, doctorCard, treatmentCard,
     };
 })();

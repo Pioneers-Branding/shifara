@@ -10,7 +10,7 @@
     const PER_PAGE = 12;
     const desktop = window.matchMedia('(min-width: 768px)');
 
-    const { esc, svg, deptName, cityName, deptBy, cityBy, hospBy, treatBy, hospitalCard, doctorCard, treatmentCard, listUrl, readFilters } = window.ShifaraUI;
+    const { BASE, esc, svg, deptName, cityName, deptBy, cityBy, hospBy, treatBy, hospitalCard, doctorCard, treatmentCard, listUrl, readFilters } = window.ShifaraUI;
 
     // ---------- Page configuration ----------
     const deptOf = {
@@ -98,8 +98,9 @@
     // Filters and page live in the path (/hospitals/cardiology/delhi/page/2); free-text name search and
     // a non-default sort stay in the query string because they are not fixed values.
     function readUrl() {
-        const fromPath = readFilters(location.pathname);
         const sp = new URLSearchParams(location.search);
+        // 404.html sends filter paths the server could not find here as ?path=cardiology/delhi/
+        const fromPath = readFilters(sp.has('path') ? `${BASE}${TYPE}/${sp.get('path')}` : location.pathname);
         const st = {};
         // ?department=… style links from older pages still work and are rewritten to the clean path
         P.keys.forEach(k => { const v = fromPath[k] || sp.get(k); if (v) st[k] = v; });
@@ -114,7 +115,8 @@
     function writeUrl(st, push = true) {
         const url = urlFor(st);
         if (url === location.pathname + location.search) return;
-        history[push ? 'pushState' : 'replaceState'](null, '', url);
+        // browsers refuse to change the path of a page opened from disk (file://); the filters still work
+        try { history[push ? 'pushState' : 'replaceState'](null, '', url); } catch (e) { }
     }
 
     // ---------- Filtering ----------

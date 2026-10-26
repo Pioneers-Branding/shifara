@@ -9,6 +9,11 @@
 //   privacy-policy/  medical-disclaimer/           legal pages (content in tools/pages/<slug>.html)
 //   services/<slug>/                              service pages (content in tools/services.js)
 //   about-us/  concierge/  country-comparison/  partner-with-us/  book-consultation/   company pages (content in tools/pages/<slug>.html)
+//   hospitals/cardiology/delhi/ …                 a copy of the listing page for every filter URL some page links to
+//   404.html                                      not-found page; sends unknown filter URLs on to the listing page
+//
+// All links are saved relative to each page's folder, so the site runs at a domain root, in a subfolder,
+// on any static server (Apache, Nginx, Netlify, VS Code Live Server…) and from disk.
 //
 // Inputs: index.html (header + footer), assets/data/catalog.js, assets/data/details/<kind>/<id>.js
 // Every generated page carries a "shifara:generated" marker with a hash of its content. If the file was
@@ -36,8 +41,21 @@ function detailData(kind, id) {
     return JSON.parse(s.slice(s.indexOf('{'), s.lastIndexOf('}') + 1));
 }
 
+// ---------- Site-root links ----------
+// Templates write links from the site root ("/hospitals/", "/assets/…"). Every page is saved with them made
+// relative to its own folder ("../../hospitals/"), so the site works at a domain root, in a subfolder, on any
+// static server and from disk.
+const ROOT_LINK = /(\s(?:href|src|data-href)=")\/(?!\/)([^"]*)"/g;
+const relative = (html, rel) => {
+    const up = '../'.repeat(rel.split('/').length - 1);
+    return html.replace(ROOT_LINK, (m, attr, p) => `${attr}${up + p || './'}"`);
+};
+// …and back, for reading the homepage (which sits at the root) as the layout source
+const fromRoot = html => html.replace(/(\s(?:href|src|data-href)=")(?![\/#?]|[a-z][a-z\d+.-]*:)(?:\.\/)?([^"]*)"/gi,
+    (m, attr, p) => `${attr}/${p}"`);
+
 // ---------- Layout from the homepage ----------
-const home = read('index.html').replace(/\r\n/g, '\n');
+const home = fromRoot(read('index.html').replace(/\r\n/g, '\n'));
 const HERO = '    <!-- ================= HERO ================= -->';
 const FOOTER = '    <!-- ================= FOOTER ================= -->';
 if (!home.includes(HERO) || !home.includes(FOOTER)) throw new Error('index.html is missing the HERO / FOOTER markers');
@@ -69,18 +87,45 @@ const MARK = /<!-- shifara:generated hash=([0-9a-f]{12}) -->\r?\n/;
 const hash = s => crypto.createHash('sha1').update(s).digest('hex').slice(0, 12);
 const stats = { written: 0, unchanged: 0, skipped: [] };
 
-function write(rel, html) {
+const norm = s => s.replace(/\r\n/g, '\n');
+const isGenerated = html => { const m = norm(html).match(MARK); return !!m && hash(norm(html).replace(MARK, '')) === m[1]; };
+
+// Listing URLs with filters (/hospitals/cardiology/delhi/) that pages link to; each gets a real folder below
+const linkedListings = new Set();
+function collectListings(html, rel) {
+    const page = new URL(rel.replace(/[^/]*$/, ''), 'http://site/');
+    for (const m of html.matchAll(/\s(?:href|data-href)="([^"#?]*)/g)) {
+        const p = new URL(m[1], page).pathname;
+        const type = p.split('/')[1];
+        if (!LISTINGS[type] || p === `/${type}/`) continue;
+        // only valid filter paths, written the way listUrl writes them
+        const f = UI.readFilters(p);
+        const { page: n, ...filters } = f;
+        if (UI.listUrl(type, filters, { page: n }) === p) linkedListings.add(p);
+    }
+}
+
+// asIs: save the links exactly as given (already relative, or site-root on purpose)
+function write(rel, html, { asIs = false } = {}) {
+    collectListings(html, rel);
     // marker goes on its own line right after <!doctype html>; editors may switch the file to CRLF,
     // so the hash is taken over LF-normalised content
-    const norm = s => s.replace(/\r\n/g, '\n');
-    const body = norm(html).replace(/^(<!doctype html>)\n?/i, '$1\n');
+    const body = norm(asIs ? html : relative(html, rel)).replace(/^(<!doctype html>)\n?/i, '$1\n');
     const withMark = h => body.replace(/^(<!doctype html>\n)/i, `$1<!-- shifara:generated hash=${h} -->\n`);
     const file = path.join(ROOT, rel);
     if (fs.existsSync(file)) {
-        const old = norm(fs.readFileSync(file, 'utf8'));
+        const raw = fs.readFileSync(file, 'utf8');
+        const old = norm(raw);
         const m = old.match(MARK);
         const edited = !m || hash(old.replace(MARK, '')) !== m[1];
-        if (edited && !FORCE) { stats.skipped.push(rel); return; }
+        if (edited && !FORCE) {
+            // keep the hand edits, but still make its site-root links relative
+            collectListings(old, rel);
+            const fixed = relative(raw, rel);
+            if (fixed !== raw) fs.writeFileSync(file, fixed);
+            stats.skipped.push(rel);
+            return;
+        }
         if (!edited && old.replace(MARK, '') === body) { stats.unchanged++; return; }
     }
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -364,6 +409,74 @@ for (const [kind, dataKind, items] of DETAILS) {
         }));
     }
 }
+
+// ---------- Homepage: the source file itself, kept with relative links ----------
+{
+    const raw = read('index.html');
+    const fixed = relative(raw, 'index.html');
+    if (fixed !== raw) { fs.writeFileSync(path.join(ROOT, 'index.html'), fixed); console.log('index.html: site-root links made relative'); }
+    collectListings(raw, 'index.html');
+}
+
+// ---------- Filtered listing pages ----------
+// Every linked filter URL gets its own copy of the listing page, so it opens on any static server
+// without rewrite rules. Other combinations (picked in the filter bar, pages 2+) are rewritten to the
+// listing page by .htaccess / server.js, or sent there by 404.html.
+const listingHtml = Object.fromEntries(Object.keys(LISTINGS).map(t => [t, norm(read(`${t}/index.html`)).replace(MARK, '')]));
+for (const p of [...linkedListings].sort()) {
+    const type = p.split('/')[1];
+    // the page as written for /<type>/, with its links moved one folder deeper per filter segment
+    const html = listingHtml[type].replace(/(\s(?:href|src|data-href)=")((?:\.\.\/)+)/g,
+        (m, attr, up) => attr + '../'.repeat(p.split('/').length - 3) + up);
+    write(`${p.slice(1)}index.html`, html, { asIs: true });
+}
+// remove generated filter folders nothing links to any more (hand-edited ones are kept)
+let removed = 0;
+for (const type of Object.keys(LISTINGS)) {
+    (function walk(dir) {
+        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+            if (!e.isDirectory()) continue;
+            const sub = path.join(dir, e.name);
+            walk(sub);
+            const file = path.join(sub, 'index.html');
+            const url = '/' + path.relative(ROOT, sub).split(path.sep).join('/') + '/';
+            if (fs.existsSync(file) && !linkedListings.has(url) && isGenerated(fs.readFileSync(file, 'utf8'))) { fs.unlinkSync(file); removed++; }
+            if (!fs.readdirSync(sub).length) fs.rmdirSync(sub);
+        }
+    })(path.join(ROOT, type));
+}
+console.log(`filtered listing pages: ${linkedListings.size}${removed ? ` (${removed} no longer linked, removed)` : ''}`);
+
+// ---------- 404 page ----------
+// Served for any missing URL, so its links stay site-root ("/…"). A filter URL without its own folder
+// (/hospitals/cardiology/page/2/) is sent on to the listing page, which reads ?path= and shows the clean URL.
+write('404.html', layout({
+    title: 'Page Not Found', description: 'The page you are looking for could not be found.', css: ['listing.css'], js: [],
+    main: `    <!-- ================= PAGE: 404 ================= -->
+    <script>
+        (() => {
+            const m = location.pathname.match(/^(.*?\\/)(hospitals|doctors|treatments)\\/(.+)$/);
+            if (m) location.replace(m[1] + m[2] + '/?path=' + encodeURIComponent(m[3]) + location.search.replace('?', '&'));
+        })();
+    </script>
+    <main>
+        <section class="lp-hero lp-hero-page">
+            <div class="container">
+                <nav class="lp-crumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>Page not found</span></nav>
+                <h1>Page Not Found</h1>
+                <p>The page you are looking for may have moved. Try one of these instead.</p>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a href="/" class="btn btn-coral">Home</a>
+                    <a href="/hospitals/" class="btn btn-ghost">Hospitals</a>
+                    <a href="/doctors/" class="btn btn-ghost">Doctors</a>
+                    <a href="/treatments/" class="btn btn-ghost">Treatments</a>
+                    <a href="/book-consultation/" class="btn btn-ghost">Book consultation</a>
+                </div>
+            </div>
+        </section>
+    </main>
+`,
+}).replace('<head>', '<head>\n    <meta name="robots" content="noindex">'), { asIs: true });
 
 console.log(`written: ${stats.written} | unchanged: ${stats.unchanged} | skipped (edited by hand): ${stats.skipped.length}`);
 if (stats.skipped.length) {

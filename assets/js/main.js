@@ -1,4 +1,15 @@
 // Shifara Health - homepage scripts (needs Bootstrap 5.3 bundle loaded first).
+// Site root from this script's URL (…/assets/js/main.js): works at a domain root, in a subfolder or from disk.
+const BASE = window.SHIFARA_BASE = new URL('../../', document.currentScript.src).pathname;
+
+// Opened from disk (file://) there is no server to turn a folder link into its index.html
+if (location.protocol === 'file:') document.addEventListener('click', e => {
+    const a = e.target.closest('a[href]');
+    if (!a || a.target || !a.href.startsWith('file:')) return;
+    const url = new URL(a.href);
+    if (url.pathname.endsWith('/')) { url.pathname += 'index.html'; a.href = url.href; }
+});
+
 // Duplicate marquee items for a seamless loop
 document.querySelectorAll('.track').forEach(t => {
     t.querySelectorAll('.lg').forEach(a => {
@@ -92,16 +103,16 @@ const ctryGrid = document.getElementById('ctryGrid');
 if (ctryGrid) {
     COUNTRIES.forEach(([code, name]) => {
         const a = document.createElement('a');
-        a.href = '/book-consultation/?country=' + encodeURIComponent(name);
+        a.href = BASE + 'book-consultation/?country=' + encodeURIComponent(name);
         a.className = 'cpill';
-        a.innerHTML = `<img src="/assets/images/flags/${code}.png" alt="" loading="lazy">${name}`;
+        a.innerHTML = `<img src="${BASE}assets/images/flags/${code}.png" alt="" loading="lazy">${name}`;
         ctryGrid.appendChild(a);
     });
 }
 
 // ---------- Site search (modelled on vaidam.com) ----------
 (() => {
-    const U = '/assets/images/';
+    const U = BASE + 'assets/images/';
     // Static index from the homepage; the full catalog (assets/data/catalog.js) is merged in on first open.
     let INDEX = [
         ...[['Cardiac Sciences', 'heart', 'Bypass, valve, angioplasty', 'cardiology'], ['Oncology', 'onco', 'Surgery, chemo, radiation', 'oncology'],
@@ -112,7 +123,7 @@ if (ctryGrid) {
         ['Urology & Nephrology', 'kidney', 'Kidney stones, dialysis, prostate', 'urology'], ['Gastroenterology', 'stomach', 'Liver, GI, endoscopy', 'gastroenterology'],
         ['Bariatric Surgery', 'scale', 'Weight-loss surgery', 'bariatric'], ['Gynaecology', 'female', 'Hysterectomy, fibroids', 'gynecology'],
         ['Paediatrics', 'child', "Children's surgery and care", 'pediatrics'], ['ENT', 'ear', 'Ear, nose and throat', 'ent']]
-            .map(([t, ic, sub, dept]) => ({ type: 'Specialities', title: t, sub: sub + ' · hospitals & doctors', icon: ic, href: '/hospitals/' + dept + '/' })),
+            .map(([t, ic, sub, dept]) => ({ type: 'Specialities', title: t, sub: sub + ' · hospitals & doctors', icon: ic, href: BASE + 'hospitals/' + dept + '/' })),
         ...[['Coronary Artery Bypass (CABG)', '$5,500 – $8,500', 'heart'], ['Total Knee Replacement', '$5,500 – $8,000', 'bone'],
         ['Liver Transplant', '$28,000 – $40,000', 'liver'], ['IVF Cycle', '$2,500 – $4,500', 'baby'],
         ['Brain Tumour Surgery', '$8,000 – $18,000', 'brain'], ['Hair Transplant', '$1,800 – $3,500', 'spark'],
@@ -128,13 +139,13 @@ if (ctryGrid) {
         ['Venkateshwar Hospital', 'hospitals/venkateshwar.jpg', 'Delhi'],
         ['Prime Super Speciality Hospital', 'hospitals/prime-super-speciality.jpg', 'India'],
         ['World IVF Infertility Centre', 'hospitals/world-ivf.jpg', 'India']]
-            .map(([t, img, sub]) => ({ type: 'Hospitals', title: t, sub: 'JCI / NABH accredited · ' + sub, img: U + img, href: '/hospitals/?q=' + encodeURIComponent(t.split(' ')[0]) })),
+            .map(([t, img, sub]) => ({ type: 'Hospitals', title: t, sub: 'JCI / NABH accredited · ' + sub, img: U + img, href: BASE + 'hospitals/?q=' + encodeURIComponent(t.split(' ')[0]) })),
         ...[['Medical Tourism', 'globe', 'End-to-end treatment travel'], ['Step-Down Care', 'home', 'Supervised recovery stays'],
         ['Nurses & Caregivers', 'nurse', 'Hospital, hotel or home'], ['Concierge Desk', 'bell', 'Food, prayer, sightseeing'],
         ['Video Consultation', 'video', 'Talk to a specialist first'], ['Air Ambulance', 'amb', 'ICU-equipped transfers'],
         ['Medical Visa Assistance', 'doc', 'e-Medical visa letter and guidance']]
             .map(([t, ic, sub]) => ({ type: 'Services', title: t, sub, icon: ic, href: '#services' })),
-        ...COUNTRIES.map(([code, name]) => ({ type: 'Countries', title: name, sub: 'Visa guide & travel support', flag: '/assets/images/flags/' + code + '.png', href: '#countries' })),
+        ...COUNTRIES.map(([code, name]) => ({ type: 'Countries', title: name, sub: 'Visa guide & travel support', flag: BASE + 'assets/images/flags/' + code + '.png', href: '#countries' })),
         ...[['Treatment Guide for Nigerian Patients', 'Country guide', 'https://shifarahealth.com/treatment-guide-for-nigerian-patients/'],
         ["7 Reasons Why You Shouldn't Ignore Knee Pain", 'Joint health', 'https://shifarahealth.com/7-reasons-why-you-shouldnt-ignore-knee-pain/'],
         ['India e-Medical Visa: A Step-by-Step Guide', 'Visa & travel', '#blog'],
@@ -188,11 +199,12 @@ if (ctryGrid) {
         if (!S || INDEX.some(it => it.type === 'Doctors')) return;
         const city = Object.fromEntries(S.cities.map(c => [c.slug, c.name]));
         const dept = Object.fromEntries(S.departments.map(d => [d.slug, d.name]));
+        const asset = p => p && p[0] === '/' ? BASE + p.slice(1) : p;
         INDEX = [
             ...INDEX.filter(it => it.type !== 'Hospitals'),
-            ...S.hospitals.map(h => ({ type: 'Hospitals', title: h.name, sub: h.address || city[h.city], img: h.logo, href: '/hospital/' + h.id + '/' })),
-            ...S.treatments.map(t => ({ type: 'Treatments', title: t.name, sub: [dept[t.department], t.cost && 'from ' + t.cost.split(/[–-]/)[0].trim()].filter(Boolean).join(' · '), icon: 'doc', href: '/treatment/' + t.id + '/' })),
-            ...S.doctors.map(d => ({ type: 'Doctors', title: d.name, sub: [d.speciality, d.hospital, city[d.city]].filter(Boolean).join(' · '), img: d.image, icon: 'user', href: '/doctor/' + d.id + '/' })),
+            ...S.hospitals.map(h => ({ type: 'Hospitals', title: h.name, sub: h.address || city[h.city], img: asset(h.logo), href: BASE + 'hospital/' + h.id + '/' })),
+            ...S.treatments.map(t => ({ type: 'Treatments', title: t.name, sub: [dept[t.department], t.cost && 'from ' + t.cost.split(/[–-]/)[0].trim()].filter(Boolean).join(' · '), icon: 'doc', href: BASE + 'treatment/' + t.id + '/' })),
+            ...S.doctors.map(d => ({ type: 'Doctors', title: d.name, sub: [d.speciality, d.hospital, city[d.city]].filter(Boolean).join(' · '), img: asset(d.image), icon: 'user', href: BASE + 'doctor/' + d.id + '/' })),
         ];
     }
     function loadCatalog() {
@@ -200,14 +212,14 @@ if (ctryGrid) {
         if (catalogState === 'loading') return;
         catalogState = 'loading';
         const s = document.createElement('script');
-        s.src = '/assets/data/catalog.js';
+        s.src = BASE + 'assets/data/catalog.js';
         s.onload = () => { catalogState = 'ready'; mergeCatalog(); render(); };
         s.onerror = () => { catalogState = 'idle'; };
         document.head.appendChild(s);
     }
 
     // Homepage anchors (#cost, #spec…) point back to the homepage when used on other pages.
-    const resolve = href => href.startsWith('#') && !document.querySelector(href) ? '/' + href : href;
+    const resolve = href => href.startsWith('#') && !document.querySelector(href) ? BASE + href : href;
 
     function itemHtml(it, q) {
         const ic = it.img ? `<img src="${it.img}" alt="" loading="lazy">` : it.flag ? `<img class="flag" src="${it.flag}" alt="" loading="lazy">` : svg(it.icon);

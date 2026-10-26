@@ -1,14 +1,39 @@
-# Shifara Health - URLs on Apache / LiteSpeed (Hostinger).
+# Shifara Health - URLs on Apache / LiteSpeed (Hostinger). Works at the domain root or in a subfolder.
 #   /hospital/<id>/  /doctor/<id>/  /treatment/<id>/   real folders, served as they are (index.html)
 #   /hospitals/  /doctors/  /treatments/                real folders (listing pages)
-#   /hospitals/cardiology/delhi/ …                      no folder -> the listing page; filters are read from the path
+#   /hospitals/cardiology/delhi/ …                      real folder when a page links to it, otherwise a
+#                                                       redirect to /hospitals/?path=cardiology/delhi/ (pages use
+#                                                       relative links, so the listing page must open from its
+#                                                       own folder); listing.js puts the clean URL back
 DirectoryIndex index.html
+Options -Indexes
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(hospitals|doctors|treatments)/.+$ $1/index.html [L,QSA]
+    RewriteCond %{REQUEST_URI} ^(.*/)(hospitals|doctors|treatments)/(.+)$
+    RewriteRule ^ %1%2/?path=%3 [R=302,L,QSA]
+</IfModule>
+
+# Path from the domain root. In a subfolder use e.g.  ErrorDocument 404 /shifara/404.html
+ErrorDocument 404 /404.html
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 0 seconds"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType image/x-icon "access plus 30 days"
+    ExpiresByType font/woff2 "access plus 30 days"
+    ExpiresByType text/css "access plus 1 day"
+    ExpiresByType text/javascript "access plus 1 day"
+    ExpiresByType application/javascript "access plus 1 day"
 </IfModule>

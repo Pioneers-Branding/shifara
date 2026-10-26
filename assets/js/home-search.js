@@ -1,12 +1,12 @@
 // Shifara Health - homepage hospital finder (Department, Treatment, City).
 // Needs assets/data/catalog.js and assets/js/cards.js loaded first. Search opens the hospitals listing
-// with the picked filters, e.g. /hospitals/cardiology/delhi/.
+// with the picked filters (hospitals/?department=cardiology&city=delhi, shown as /hospitals/cardiology/delhi/).
 (() => {
     const D = window.SHIFARA;
     const bar = document.querySelector('#hfBar');
     if (!D || !bar || !window.ShifaraUI) return;
 
-    const { esc, svg, deptName, cityName, treatBy, listUrl } = window.ShifaraUI;
+    const { BASE, esc, svg, deptName, cityName, treatBy } = window.ShifaraUI;
 
     const FILTERS = {
         department: {
@@ -138,7 +138,9 @@
 
     bar.querySelector('.lf-clear').addEventListener('click', () => { st = {}; refresh(); });
     bar.querySelector('.lf-search').addEventListener('click', () => {
-        location.href = listUrl('hospitals', { department: st.department, treatment: st.treatment, city: st.city });
+        // any filter mix: the listing folder always exists, and the listing page switches to the clean URL itself
+        const q = new URLSearchParams(KEYS.filter(k => st[k]).map(k => [k, st[k]]));
+        location.href = `${BASE}hospitals/${q.toString() ? '?' + q : ''}`;
     });
 
     refresh();
