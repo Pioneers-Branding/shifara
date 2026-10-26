@@ -914,7 +914,7 @@ svg.i {
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(90deg, rgba(252, 244, 242, 0.93) 0%, rgba(252, 244, 242, 0.88) 45%, rgba(255, 255, 255, 0.72) 72%, rgba(255, 255, 255, 0.85) 100%),
+        linear-gradient(90deg, rgba(252, 244, 242, 0.82) 0%, rgba(252, 244, 242, 0.7) 45%, rgba(255, 255, 255, 0.45) 72%, rgba(255, 255, 255, 0.6) 100%),
         linear-gradient(180deg, rgba(252, 244, 242, 0.3) 0%, transparent 60%, #ffffff 100%);
 }
 
