@@ -9,8 +9,7 @@
     root.querySelectorAll('.dt-quote-form').forEach(f => f.addEventListener('submit', e => {
         e.preventDefault();
         // TODO: send the enquiry (with f.dataset.subject) to the CRM / form endpoint
-        f.classList.add('d-none');
-        f.nextElementSibling.classList.remove('d-none');
+        thankYou();
     }));
 
     // Hospital page: filter the doctors by department (first 6 shown)

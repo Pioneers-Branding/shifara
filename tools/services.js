@@ -160,6 +160,8 @@ module.exports = [
             list: [
                 {
                     name: 'MedEscort International',
+                    image: '/assets/images/photos/medescort.webp',
+                    imageAlt: 'MedEscort medical team caring for a stretcher patient on board a commercial flight',
                     about: 'MedEscort International has over 11 years of experience in air ambulance and medical escort services, completing medical transfer missions across more than 50 countries. The company specialises in safe, medically supervised patient transportation and works closely with hospitals, families, and healthcare providers to coordinate every transfer with care and precision.',
                     facts: [['clock', 'Years of Experience', '11+ Years'], ['globe', 'Coverage', 'Domestic and International']],
                     services: ['Air Ambulance', 'Medical Escort', 'Commercial Airline Medical Escort', 'Stretcher Transfers', 'Bed-to-Bed Patient Transfer', 'Medical Repatriation'],
@@ -168,6 +170,8 @@ module.exports = [
                 },
                 {
                     name: 'Bluedot Air Ambulance',
+                    image: '/assets/images/photos/bluedot.webp',
+                    imageAlt: 'Bluedot flight nurse attending to a patient inside an air ambulance',
                     about: 'Bluedot Air Ambulance is an international medical transport provider delivering air ambulance and medical evacuation services across India and worldwide. Backed by experienced aeromedical teams and a global transport network, the company specialises in safe patient transfers with advanced onboard critical care support.',
                     facts: [['globe', 'Coverage', 'Domestic and International']],
                     services: ['Air Ambulance', 'Medical Escort', 'Medical Evacuation', 'Commercial Stretcher Transfers', 'Organ Transport', 'Neonatal & Paediatric Transfers'],

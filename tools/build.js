@@ -412,6 +412,16 @@ const COMPANY = {
         lead: 'Hospitals, recovery homes, caregiver agencies and travel services: join the network that looks after international patients in India.',
         desc: 'Partner with Shifara Health: hospitals, recovery homes, nursing agencies and travel, visa and interpreter services can join our international patient care network.',
     },
+    'travel-visa': {
+        name: 'Travel & Visa', eyebrow: 'Medical visa guide', h1: 'Medical Visa &amp; <em>Travel to India</em>',
+        lead: 'Which visa to apply for, the documents you need, how to apply and what happens when you land, in one place. Our visa help is free.',
+        desc: 'India medical visa guide for international patients: e-Medical Visa and attendant visas, documents, how to apply, FRRO registration, extensions and travel checklist.',
+    },
+    'thank-you': {
+        name: 'Thank You', eyebrow: 'Request received', h1: 'Thank You! <em>We\'ve Got Your Details</em>',
+        lead: 'Your enquiry has reached Shifara Health. Here is what happens next.',
+        desc: 'Thank you for contacting Shifara Health.', noindex: true,
+    },
 };
 for (const [slug, c] of Object.entries(COMPANY)) {
     const body = read(`tools/pages/${slug}.html`).replace(/\r\n/g, '\n').replace(/^<!--[\s\S]*?-->\n/, '');
@@ -428,10 +438,11 @@ for (const [slug, c] of Object.entries(COMPANY)) {
 ${body.trim().split('\n').map(l => l ? '        ' + l : l).join('\n')}
     </main>
 `;
-    write(`${slug}/index.html`, layout({
+    const html = layout({
         title: c.name === 'Country Comparison' ? 'Treatment Cost Comparison by Country' : c.name,
         description: c.desc, css: ['listing.css', 'service.css'], js: [], main,
-    }));
+    });
+    write(`${slug}/index.html`, c.noindex ? html.replace('<head>', '<head>\n    <meta name="robots" content="noindex">') : html);
 }
 
 // ---------- Detail pages ----------

@@ -96,11 +96,6 @@ module.exports = function templates(UI) {
                             </div>
                             <p class="dt-quote-note">${svg('shield')}Your reports are shared only with hospitals you approve.</p>
                         </form>
-                        <div class="dt-quote-ok d-none">
-                            <div class="ok-ico">${svg('check', 'i')}</div>
-                            <h3>Request received</h3>
-                            <p class="dt-quote-sub">A case manager will contact you within 24 hours.</p>
-                        </div>
                     </div>`;
     }
 
@@ -322,11 +317,6 @@ module.exports = function templates(UI) {
                                 </div>
                                 <p class="dt-quote-note">${svg('shield')}Your medical information stays confidential.</p>
                             </form>
-                            <div class="dt-quote-ok d-none">
-                                <div class="ok-ico">${svg('check', 'i')}</div>
-                                <h3>Request received</h3>
-                                <p class="dt-quote-sub">A medical case manager will contact you within 24 hours.</p>
-                            </div>
                         </div>
                     </div>
                 </div>

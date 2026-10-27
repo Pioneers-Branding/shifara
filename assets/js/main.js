@@ -52,26 +52,35 @@ function qcSubmit() {
         email: document.getElementById('qcEmail').value
     });
     // TODO: send `lead` (with consent: true and a timestamp, as proof of consent) to the CRM / form endpoint
-    qcNext(4);
+    thankYou();
+}
+
+// Every enquiry form ends on the thank-you page (one URL to track conversions on).
+// Once the forms post to the CRM, call this after the request succeeds.
+function thankYou(type) {
+    location.href = BASE + 'thank-you/' + (type ? '?type=' + type : '');
 }
 
 // Contact form
 function formSubmit(e) {
     e.preventDefault();
     // TODO: send to the CRM / form endpoint
-    document.getElementById('formFields').classList.add('d-none');
-    document.getElementById('formOk').classList.add('on');
+    thankYou();
     return false;
 }
 
-// Forms on the company pages (about, partner): swap the fields for the thank-you note
+// Forms on the company pages (about, book consultation, partner)
 function pageFormSubmit(e) {
     e.preventDefault();
     // TODO: send to the CRM / form endpoint, with consent: true and a timestamp
-    const f = e.target;
-    f.querySelector('[data-fields]').classList.add('d-none');
-    f.querySelector('[data-ok]').classList.remove('d-none');
+    thankYou(e.target.id === 'partnerForm' ? 'partner' : '');
     return false;
+}
+
+// Thank-you page: partner enquiries get their own wording
+if (new URLSearchParams(location.search).get('type') === 'partner') {
+    document.querySelectorAll('[data-partner]').forEach(el => { el.textContent = el.dataset.partner; });
+    document.querySelectorAll('[data-partner-hide]').forEach(el => el.classList.add('d-none'));
 }
 
 // Book consultation page: show what the enquiry is about (?for=…) and preselect the country (?country=…)
@@ -143,12 +152,12 @@ if (ctryGrid) {
         ...[['Medical Tourism', 'globe', 'End-to-end treatment travel'], ['Step-Down Care', 'home', 'Supervised recovery stays'],
         ['Nurses & Caregivers', 'nurse', 'Hospital, hotel or home'], ['Concierge Desk', 'bell', 'Food, prayer, sightseeing'],
         ['Video Consultation', 'video', 'Talk to a specialist first'], ['Air Ambulance', 'amb', 'ICU-equipped transfers'],
-        ['Medical Visa Assistance', 'doc', 'e-Medical visa letter and guidance']]
-            .map(([t, ic, sub]) => ({ type: 'Services', title: t, sub, icon: ic, href: '#services' })),
+        ['Medical Visa Assistance', 'doc', 'e-Medical visa letter and guidance', BASE + 'travel-visa/']]
+            .map(([t, ic, sub, href = '#services']) => ({ type: 'Services', title: t, sub, icon: ic, href })),
         ...COUNTRIES.map(([code, name]) => ({ type: 'Countries', title: name, sub: 'Visa guide & travel support', flag: BASE + 'assets/images/flags/' + code + '.png', href: '#countries' })),
         ...[['Treatment Guide for Nigerian Patients', 'Country guide', 'https://shifarahealth.com/treatment-guide-for-nigerian-patients/'],
         ["7 Reasons Why You Shouldn't Ignore Knee Pain", 'Joint health', 'https://shifarahealth.com/7-reasons-why-you-shouldnt-ignore-knee-pain/'],
-        ['India e-Medical Visa: A Step-by-Step Guide', 'Visa & travel', '#blog'],
+        ['India e-Medical Visa: A Step-by-Step Guide', 'Visa & travel', BASE + 'travel-visa/'],
         ["Heart Bypass Cost in India: What's Included", 'Cost guide', '#blog']]
             .map(([t, sub, href]) => ({ type: 'Articles', title: t, sub, icon: 'doc', href }))
     ];
