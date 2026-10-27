@@ -648,3 +648,195 @@
     font-weight: 600;
     color: var(--slate)
 }
+
+/* ---------- Partners (air ambulance) ---------- */
+.svp-ptr-sec {
+    background: linear-gradient(180deg, #fff 0%, var(--soft) 100%)
+}
+
+.svp-ptr-sec .sec-head {
+    margin-bottom: clamp(28px, 4vw, 44px)
+}
+
+.svp-ptr-intro {
+    color: var(--slate);
+    font-size: 15px;
+    margin: 12px 0 0
+}
+
+.svp-ptr {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden
+}
+
+.svp-ptr + .svp-ptr {
+    margin-top: clamp(24px, 3vw, 36px)
+}
+
+.svp-ptr-img {
+    height: 100%;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px;
+    text-align: center;
+    background: radial-gradient(420px 260px at 100% 0%, rgba(235, 104, 97, .18), transparent 65%),
+        linear-gradient(135deg, var(--navy) 0%, #1d4a6e 100%);
+    color: #fff
+}
+
+.svp-ptr-img.photo {
+    padding: 0
+}
+
+.svp-ptr-img img {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    object-fit: cover
+}
+
+.svp-ptr-img svg {
+    width: 64px;
+    height: 64px;
+    padding: 16px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    color: #fff
+}
+
+.svp-ptr-img b {
+    font-size: 20px;
+    font-weight: 800
+}
+
+.svp-ptr-body {
+    padding: clamp(22px, 3vw, 36px)
+}
+
+.svp-ptr-body h3 {
+    font-size: clamp(22px, 2.4vw, 28px);
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0
+}
+
+.svp-ptr-sub {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 4px 0 14px
+}
+
+.svp-ptr-body p {
+    color: var(--slate);
+    font-size: 15px;
+    margin-bottom: 20px
+}
+
+.svp-ptr-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px
+}
+
+.svp-ptr-facts > div {
+    flex: 1 1 180px;
+    max-width: 240px;
+    border: 1px solid rgba(235, 104, 97, .35);
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: var(--blush)
+}
+
+.svp-ptr-facts svg {
+    width: 16px;
+    height: 16px;
+    color: var(--coral);
+    margin-right: 6px;
+    vertical-align: -3px
+}
+
+.svp-ptr-facts span {
+    font-size: 12px;
+    color: var(--slate)
+}
+
+.svp-ptr-facts b {
+    display: block;
+    margin-top: 4px;
+    color: var(--navy);
+    font-weight: 700
+}
+
+.svp-ptr-foot {
+    border-top: 1px solid var(--line);
+    padding: clamp(20px, 3vw, 30px) clamp(22px, 3vw, 36px)
+}
+
+.svp-ptr-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 14px
+}
+
+.svp-ptr-h svg {
+    width: 26px;
+    height: 26px;
+    padding: 6px;
+    border-radius: 50%;
+    background: var(--teal-soft);
+    color: var(--teal-d)
+}
+
+.svp-ptr-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px
+}
+
+.svp-ptr-list li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 14px;
+    color: var(--ink)
+}
+
+.svp-ptr-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: .45em;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--teal)
+}
+
+.svp-ptr-list.fleet li {
+    padding: 8px 14px;
+    border: 1px solid rgba(235, 104, 97, .35);
+    border-radius: 999px;
+    background: #fff
+}
+
+.svp-ptr-list.fleet li::before {
+    display: none
+}

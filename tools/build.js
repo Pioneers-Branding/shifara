@@ -253,6 +253,45 @@ ${body.trim().split('\n').map(l => '                ' + l).join('\n')}
 // ---------- Service pages (content in tools/services.js) ----------
 const SERVICES = require('./services.js');
 const icon = (id, cls = '') => `<svg${cls ? ` class="${cls}"` : ''}><use href="#${id}" /></svg>`;
+// Partner cards (air ambulance): photo or brand panel beside the profile, then services / capabilities / fleet
+function partnersSection(p) {
+    const list = (ic, label, items, boxed) => `                                <div class="col-md-4">
+                                    <h4 class="svp-ptr-h">${icon(ic)}${label}</h4>
+                                    <ul class="svp-ptr-list${boxed ? ' fleet' : ''}">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+                                </div>`;
+    return `        <section class="sec svp-ptr-sec">
+            <div class="container">
+                <div class="sec-head">
+                    <span class="eyebrow">${esc(p.eyebrow)}</span>
+                    <h2 class="title">${p.title}</h2>
+${p.intro.map(t => `                    <p class="svp-ptr-intro">${esc(t)}</p>`).join('\n')}
+                </div>
+${p.list.map((c, i) => `                <article class="svp-ptr">
+                    <div class="row g-0${i % 2 ? ' flex-lg-row-reverse' : ''}">
+                        <div class="col-lg-5">
+                            <div class="svp-ptr-img${c.image ? ' photo' : ''}">${c.image ? `<img src="${esc(c.image)}" alt="${esc(c.imageAlt || c.name)}" loading="lazy">` : `${icon('amb')}<b>${esc(c.name)}</b>`}</div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="svp-ptr-body">
+                                <h3>${esc(c.name)}</h3>
+                                <span class="svp-ptr-sub">About the company</span>
+                                <p>${esc(c.about)}</p>
+                                <div class="svp-ptr-facts">${c.facts.map(([ic, k, v]) => `<div>${icon(ic)}<span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="svp-ptr-foot">
+                        <div class="row g-4">
+${list('check', 'Services offered', c.services)}
+${list('heart', 'Medical capabilities', c.capabilities)}
+${list('amb', 'Fleet available', c.fleet, true)}
+                        </div>
+                    </div>
+                </article>`).join('\n')}
+            </div>
+        </section>
+`;
+}
 for (const s of SERVICES) {
     const others = SERVICES.filter(o => o.slug !== s.slug);
     const main = `    <!-- ================= SERVICE: ${s.slug} ================= -->
@@ -289,6 +328,7 @@ ${s.included.map(([h, p]) => `                    <div class="col"><div class="s
             </div>
         </section>
 
+${s.partners ? partnersSection(s.partners) : ''}
         <section class="sec svp-steps-sec">
             <div class="container">
                 <div class="sec-head">

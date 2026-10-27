@@ -149,6 +149,33 @@ module.exports = [
             ['Quote & booking', 'We share the transfer options and a written quote.'],
             ['Transfer & admission', 'The patient flies with the medical team and is admitted on arrival.'],
         ],
+        // Partner cards; add `image: '/assets/images/partners/<file>.jpg'` (and imageAlt) to show a photo
+        partners: {
+            eyebrow: 'Our Air Ambulance Partners',
+            title: 'Carefully Selected <em>Air Medical Partners</em>',
+            intro: [
+                'When patients require urgent medical transportation, choosing the right air ambulance provider is essential. Shifara Health works with carefully selected air medical partners who share our commitment to patient safety, clinical excellence, and compassionate care. Together, we help coordinate domestic and international medical transfers for patients requiring specialised care during transit.',
+                'To ensure safe and reliable patient transfers, Shifara Health partners with experienced air medical transport providers who deliver specialised care during every stage of the journey.',
+            ],
+            list: [
+                {
+                    name: 'MedEscort International',
+                    about: 'MedEscort International has over 11 years of experience in air ambulance and medical escort services, completing medical transfer missions across more than 50 countries. The company specialises in safe, medically supervised patient transportation and works closely with hospitals, families, and healthcare providers to coordinate every transfer with care and precision.',
+                    facts: [['clock', 'Years of Experience', '11+ Years'], ['globe', 'Coverage', 'Domestic and International']],
+                    services: ['Air Ambulance', 'Medical Escort', 'Commercial Airline Medical Escort', 'Stretcher Transfers', 'Bed-to-Bed Patient Transfer', 'Medical Repatriation'],
+                    capabilities: ['Critical care patient transfers', 'ICU-equipped transport', 'Ventilator support', 'Onboard doctor and trained medical staff', 'Continuous patient monitoring'],
+                    fleet: ['Fixed-wing Air Ambulance', 'Commercial Airline Medical Escort', 'Ground Ambulance Coordination'],
+                },
+                {
+                    name: 'Bluedot Air Ambulance',
+                    about: 'Bluedot Air Ambulance is an international medical transport provider delivering air ambulance and medical evacuation services across India and worldwide. Backed by experienced aeromedical teams and a global transport network, the company specialises in safe patient transfers with advanced onboard critical care support.',
+                    facts: [['globe', 'Coverage', 'Domestic and International']],
+                    services: ['Air Ambulance', 'Medical Escort', 'Medical Evacuation', 'Commercial Stretcher Transfers', 'Organ Transport', 'Neonatal & Paediatric Transfers'],
+                    capabilities: ['ICU-configured aircraft', 'Ventilator support', 'Advanced life-support equipment', 'Onboard doctor and critical care nurse', 'Continuous patient monitoring'],
+                    fleet: ['Fixed-wing Air Ambulance', 'Commercial Airline Stretcher', 'Ground Ambulance Coordination'],
+                },
+            ],
+        },
         who: ['Critically ill patients who cannot fly commercially', 'Patients needing urgent transfer for specialist treatment', 'Stable patients who need a stretcher on a scheduled flight'],
         faqs: [
             ['How quickly can a transfer happen?', 'It depends on the patient\'s condition, flight permits and aircraft availability. Contact us as early as possible so we can plan.'],
