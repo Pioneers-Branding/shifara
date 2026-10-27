@@ -6,11 +6,7 @@
     if (!root) return;
 
     // Quote forms
-    root.querySelectorAll('.dt-quote-form').forEach(f => f.addEventListener('submit', e => {
-        e.preventDefault();
-        // TODO: send the enquiry (with f.dataset.subject) to the CRM / form endpoint
-        thankYou();
-    }));
+    root.querySelectorAll('.dt-quote-form').forEach(f => f.addEventListener('submit', sendForm));
 
     // Hospital page: filter the doctors by department (first 6 shown)
     const chips = root.querySelector('#dtDocChips');

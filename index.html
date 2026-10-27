@@ -12,8 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link href="https://cdn.jsdelivr.
-    net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/listing.css">
 </head>
@@ -821,6 +820,8 @@
                         <div class="steps-dots d-flex gap-2 mb-3"><span class="on"></span><span></span><span></span>
                         </div>
 
+                        <form id="quoteForm" data-form="Homepage quote" accept-charset="UTF-8" action="https://app.formester.com/forms/HmhWy3jl2/submissions" method="POST" onsubmit="return sendForm(event)">
+                        <input type="hidden" name="treatment" id="qcTreat">
                         <div class="qc-step on" data-step="1">
                             <p class="form-label">What treatment are you looking for?</p>
                             <div class="d-flex flex-wrap gap-2 mb-3" id="treatChips">
@@ -843,7 +844,7 @@
                         <div class="qc-step" data-step="2">
                             <div class="row g-3">
                                 <div class="col-sm-6"><label class="form-label" for="qcCountry">Your country</label>
-                                    <select class="form-select" id="qcCountry">
+                                    <select class="form-select" id="qcCountry" name="country">
                                         <option value="">Select country</option>
                                         <option>Bangladesh</option>
                                         <option>Iraq</option>
@@ -864,7 +865,7 @@
                                 </div>
                                 <div class="col-sm-6"><label class="form-label" for="qcWhen">When do you plan to
                                         travel?</label>
-                                    <select class="form-select" id="qcWhen">
+                                    <select class="form-select" id="qcWhen" name="when">
                                         <option>As soon as possible</option>
                                         <option>Within 1 month</option>
                                         <option>1–3 months</option>
@@ -873,7 +874,7 @@
                                 </div>
                                 <div class="col-12"><label class="form-label" for="qcNote">Briefly describe the
                                         condition (optional)</label>
-                                    <textarea class="form-control" id="qcNote" rows="2"
+                                    <textarea class="form-control" id="qcNote" name="message" rows="2"
                                         placeholder="e.g. Doctor advised bypass surgery, 3 blocked arteries"></textarea>
                                 </div>
                                 <div class="col-6"><button type="button" class="btn btn-ghost w-100"
@@ -886,16 +887,16 @@
                         <div class="qc-step" data-step="3">
                             <div class="row g-3">
                                 <div class="col-12"><label class="form-label" for="qcName">Full name</label><input
-                                        class="form-control" id="qcName" placeholder="Your name"></div>
+                                        class="form-control" id="qcName" name="name" required placeholder="Your name"></div>
                                 <div class="col-12"><label class="form-label" for="qcPhone">WhatsApp / Phone
-                                        number</label><input class="form-control" id="qcPhone" type="tel"
+                                        number</label><input class="form-control" id="qcPhone" name="phone" type="tel" required
                                         placeholder="+880 1XXX XXXXXX"></div>
                                 <div class="col-12"><label class="form-label" for="qcEmail">Email</label><input
-                                        class="form-control" id="qcEmail" type="email" placeholder="you@email.com">
+                                        class="form-control" id="qcEmail" name="email" type="email" placeholder="you@email.com">
                                 </div>
                                 <div class="col-12">
                                     <div class="form-check consent-check">
-                                        <input class="form-check-input" type="checkbox" id="qcConsent" required>
+                                        <input class="form-check-input" type="checkbox" id="qcConsent" name="consent" value="Yes" required>
                                         <label class="form-check-label" for="qcConsent">I consent to Shifara Health
                                             using my
                                             details and health information to prepare a treatment plan, share it with
@@ -908,10 +909,11 @@
                                 </div>
                                 <div class="col-6"><button type="button" class="btn btn-ghost w-100"
                                         onclick="qcNext(2)">Back</button></div>
-                                <div class="col-6"><button type="button" class="btn btn-coral w-100"
-                                        onclick="qcSubmit()">Get free quote</button></div>
+                                <div class="col-6"><button type="submit" class="btn btn-coral w-100">Get free quote</button></div>
                             </div>
                         </div>
+
+                        </form>
 
                         <div class="qc-foot d-flex align-items-center gap-2 mt-3"><svg class="i" style="width:16px">
                                 <use href="#shield" />
@@ -1929,7 +1931,7 @@
                         </div>
                     </div>
                     <div class="col-lg-7">
-                        <form id="contactForm" class="h-100" onsubmit="return formSubmit(event)">
+                        <form id="contactForm" class="h-100" data-form="Homepage contact" accept-charset="UTF-8" action="https://app.formester.com/forms/HmhWy3jl2/submissions" method="POST" onsubmit="return sendForm(event)">
                             <div id="formFields">
                                 <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
                                     <div>
@@ -1940,9 +1942,9 @@
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-md-6"><label class="form-label" for="cfName">Full name</label><input
-                                            class="form-control" id="cfName" required placeholder="Your name"></div>
+                                            class="form-control" id="cfName" name="name" required placeholder="Your name"></div>
                                     <div class="col-md-6"><label class="form-label"
-                                            for="cfCountry">Country</label><select class="form-select" id="cfCountry"
+                                            for="cfCountry">Country</label><select class="form-select" id="cfCountry" name="country"
                                             required>
                                             <option value="">Select your country</option>
                                             <option>Bangladesh</option>
@@ -1962,13 +1964,13 @@
                                             <option>Other</option>
                                         </select></div>
                                     <div class="col-md-6"><label class="form-label" for="cfPhone">Phone /
-                                            WhatsApp</label><input class="form-control" id="cfPhone" type="tel" required
+                                            WhatsApp</label><input class="form-control" id="cfPhone" name="phone" type="tel" required
                                             placeholder="With country code"></div>
                                     <div class="col-md-6"><label class="form-label" for="cfEmail">Email</label><input
-                                            class="form-control" id="cfEmail" type="email" placeholder="you@email.com">
+                                            class="form-control" id="cfEmail" name="email" type="email" placeholder="you@email.com">
                                     </div>
                                     <div class="col-12"><label class="form-label" for="cfTreat">Treatment
-                                            needed</label><select class="form-select" id="cfTreat">
+                                            needed</label><select class="form-select" id="cfTreat" name="treatment">
                                             <option value="">Select a treatment</option>
                                             <option>Cardiac / Heart</option>
                                             <option>Cancer care</option>
@@ -1983,12 +1985,12 @@
                                             <option>Other / Not sure</option>
                                         </select></div>
                                     <div class="col-12"><label class="form-label" for="cfMsg">Your medical
-                                            concern</label><textarea class="form-control" id="cfMsg" rows="3"
+                                            concern</label><textarea class="form-control" id="cfMsg" name="message" rows="3"
                                             placeholder="Tell us briefly about the condition and treatment advised"></textarea>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-check consent-check">
-                                            <input class="form-check-input" type="checkbox" id="cfConsent" required>
+                                            <input class="form-check-input" type="checkbox" id="cfConsent" name="consent" value="Yes" required>
                                             <label class="form-check-label" for="cfConsent">I consent to Shifara Health
                                                 using my
                                                 details and health information to prepare a treatment plan, share it

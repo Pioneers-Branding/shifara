@@ -106,11 +106,11 @@
                 </ul>
             </div>
             <div class="col-lg-7">
-                <form class="pg-form" onsubmit="return pageFormSubmit(event)">
+                <form class="pg-form" data-form="About us" accept-charset="UTF-8" action="https://app.formester.com/forms/HmhWy3jl2/submissions" method="POST" onsubmit="return sendForm(event)">
                     <div class="row g-3" data-fields>
-                        <div class="col-md-6"><label class="form-label" for="afName">Full name</label><input class="form-control" id="afName" required placeholder="Your name"></div>
+                        <div class="col-md-6"><label class="form-label" for="afName">Full name</label><input class="form-control" id="afName" name="name" required placeholder="Your name"></div>
                         <div class="col-md-6"><label class="form-label" for="afCountry">Country</label>
-                            <select class="form-select" id="afCountry" required>
+                            <select class="form-select" id="afCountry" name="country" required>
                                 <option value="">Select your country</option>
                                 <option>Bangladesh</option>
                                 <option>Iraq</option>
@@ -128,12 +128,12 @@
                                 <option>Somalia</option>
                                 <option>Other</option>
                             </select></div>
-                        <div class="col-md-6"><label class="form-label" for="afEmail">Email</label><input class="form-control" id="afEmail" type="email" placeholder="you@email.com"></div>
-                        <div class="col-md-6"><label class="form-label" for="afPhone">Phone / WhatsApp</label><input class="form-control" id="afPhone" type="tel" required placeholder="With country code"></div>
-                        <div class="col-12"><label class="form-label" for="afMsg">Message</label><textarea class="form-control" id="afMsg" rows="3" placeholder="Tell us briefly about the condition and treatment advised"></textarea></div>
+                        <div class="col-md-6"><label class="form-label" for="afEmail">Email</label><input class="form-control" id="afEmail" name="email" type="email" placeholder="you@email.com"></div>
+                        <div class="col-md-6"><label class="form-label" for="afPhone">Phone / WhatsApp</label><input class="form-control" id="afPhone" name="phone" type="tel" required placeholder="With country code"></div>
+                        <div class="col-12"><label class="form-label" for="afMsg">Message</label><textarea class="form-control" id="afMsg" name="message" rows="3" placeholder="Tell us briefly about the condition and treatment advised"></textarea></div>
                         <div class="col-12">
                             <div class="form-check consent-check">
-                                <input class="form-check-input" type="checkbox" id="afConsent" required>
+                                <input class="form-check-input" type="checkbox" id="afConsent" name="consent" value="Yes" required>
                                 <label class="form-check-label" for="afConsent">I consent to Shifara Health using my details and health information to prepare a treatment plan and share it with the hospitals I approve, as described in the <a href="/privacy-policy/">Privacy Policy</a>.</label>
                             </div>
                         </div>

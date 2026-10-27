@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- shifara:generated hash=c00275ca6fcc -->
+<!-- shifara:generated hash=035f30275ac9 -->
 <html lang="en">
 
 <head>
@@ -823,12 +823,12 @@
                         </ul>
                     </div>
                     <div class="col-lg-7">
-                        <form class="pg-form" id="partnerForm" onsubmit="return pageFormSubmit(event)">
+                        <form class="pg-form" id="partnerForm" data-form="Partner with us" accept-charset="UTF-8" action="https://app.formester.com/forms/HmhWy3jl2/submissions" method="POST" onsubmit="return sendForm(event)">
                             <div class="row g-3" data-fields>
-                                <div class="col-md-6"><label class="form-label" for="pfName">Full name</label><input class="form-control" id="pfName" required placeholder="Your name"></div>
-                                <div class="col-md-6"><label class="form-label" for="pfOrg">Organisation</label><input class="form-control" id="pfOrg" required placeholder="Hospital, clinic or company"></div>
+                                <div class="col-md-6"><label class="form-label" for="pfName">Full name</label><input class="form-control" id="pfName" name="name" required placeholder="Your name"></div>
+                                <div class="col-md-6"><label class="form-label" for="pfOrg">Organisation</label><input class="form-control" id="pfOrg" name="organisation" required placeholder="Hospital, clinic or company"></div>
                                 <div class="col-md-6"><label class="form-label" for="pfType">Partner type</label>
-                                    <select class="form-select" id="pfType" required>
+                                    <select class="form-select" id="pfType" name="partner_type" required>
                                         <option value="">Select type</option>
                                         <option>Hospital / specialty clinic</option>
                                         <option>Recovery / rehabilitation property</option>
@@ -836,13 +836,13 @@
                                         <option>Travel, visa or interpreter service</option>
                                         <option>Other</option>
                                     </select></div>
-                                <div class="col-md-6"><label class="form-label" for="pfCity">City</label><input class="form-control" id="pfCity" placeholder="e.g. Gurugram"></div>
-                                <div class="col-md-6"><label class="form-label" for="pfEmail">Email</label><input class="form-control" id="pfEmail" type="email" required placeholder="you@company.com"></div>
-                                <div class="col-md-6"><label class="form-label" for="pfPhone">Phone / WhatsApp</label><input class="form-control" id="pfPhone" type="tel" required placeholder="With country code"></div>
-                                <div class="col-12"><label class="form-label" for="pfMsg">Message</label><textarea class="form-control" id="pfMsg" rows="3" placeholder="Tell us about your services"></textarea></div>
+                                <div class="col-md-6"><label class="form-label" for="pfCity">City</label><input class="form-control" id="pfCity" name="city" placeholder="e.g. Gurugram"></div>
+                                <div class="col-md-6"><label class="form-label" for="pfEmail">Email</label><input class="form-control" id="pfEmail" name="email" type="email" required placeholder="you@company.com"></div>
+                                <div class="col-md-6"><label class="form-label" for="pfPhone">Phone / WhatsApp</label><input class="form-control" id="pfPhone" name="phone" type="tel" required placeholder="With country code"></div>
+                                <div class="col-12"><label class="form-label" for="pfMsg">Message</label><textarea class="form-control" id="pfMsg" name="message" rows="3" placeholder="Tell us about your services"></textarea></div>
                                 <div class="col-12">
                                     <div class="form-check consent-check">
-                                        <input class="form-check-input" type="checkbox" id="pfConsent" required>
+                                        <input class="form-check-input" type="checkbox" id="pfConsent" name="consent" value="Yes" required>
                                         <label class="form-check-label" for="pfConsent">I consent to Shifara Health using these details to contact me about a partnership, as described in the <a href="../privacy-policy/">Privacy Policy</a>.</label>
                                     </div>
                                 </div>

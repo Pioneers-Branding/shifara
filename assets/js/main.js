@@ -26,56 +26,54 @@ document.querySelectorAll('#mainNav a:not(.dropdown-toggle)').forEach(a => a.add
     if (nav.classList.contains('show')) bootstrap.Collapse.getOrCreateInstance(nav).hide();
 }));
 
-// Multi-step quote form
-const lead = {};
+// Multi-step quote form (homepage): the picked chip goes in the hidden "treatment" field
 document.querySelectorAll('#treatChips .chip').forEach(c => c.addEventListener('click', () => {
     document.querySelectorAll('#treatChips .chip').forEach(x => x.classList.remove('on'));
     c.classList.add('on');
-    lead.treatment = c.textContent;
+    document.getElementById('qcTreat').value = c.textContent;
 }));
 function qcNext(n) {
     document.querySelectorAll('.qc-step').forEach(s => s.classList.toggle('on', +s.dataset.step === n));
     document.querySelectorAll('.steps-dots span').forEach((d, i) => d.classList.toggle('on', i < n));
 }
-function qcSubmit() {
-    const name = document.getElementById('qcName'), phone = document.getElementById('qcPhone');
-    if (!name.value.trim()) { name.focus(); return; }
-    if (!phone.value.trim()) { phone.focus(); return; }
-    // DPDP Act: no submission without explicit consent
-    const consent = document.getElementById('qcConsent');
-    if (!consent.checked) { consent.reportValidity(); return; }
-    Object.assign(lead, {
-        country: document.getElementById('qcCountry').value,
-        when: document.getElementById('qcWhen').value,
-        note: document.getElementById('qcNote').value,
-        name: name.value, phone: phone.value,
-        email: document.getElementById('qcEmail').value
-    });
-    // TODO: send `lead` (with consent: true and a timestamp, as proof of consent) to the CRM / form endpoint
-    thankYou();
-}
 
-// Every enquiry form ends on the thank-you page (one URL to track conversions on).
-// Once the forms post to the CRM, call this after the request succeeds.
+// Every enquiry form ends on the thank-you page (one URL to track conversions on)
 function thankYou(type) {
     location.href = BASE + 'thank-you/' + (type ? '?type=' + type : '');
 }
 
-// Contact form
-function formSubmit(e) {
+// Enquiry forms post to Formester (the <form action>). Sent in the background so the visitor lands on our
+// own thank-you page; if that fails, the form is posted the normal way instead.
+function setField(form, name, value) {
+    const el = form.querySelector(`input[type="hidden"][name="${name}"]`) || form.appendChild(Object.assign(document.createElement('input'), { type: 'hidden', name }));
+    el.value = value;
+}
+function sendForm(e) {
     e.preventDefault();
-    // TODO: send to the CRM / form endpoint
-    thankYou();
+    const form = e.target;
+    if (form.dataset.sending) return false;
+    form.dataset.sending = '1';
+    setField(form, 'form', form.dataset.form || 'Website form');
+    setField(form, 'page', location.href);
+    // DPDP Act: the consent box is required, so every lead carries consent = Yes and this timestamp as proof
+    setField(form, 'submitted_at', new Date().toISOString());
+    const btn = form.querySelector('[type="submit"]');
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.innerHTML; btn.textContent = 'Sending…'; }
+    // url-encoded, exactly what a normal form post sends
+    fetch(form.action, { method: 'POST', body: new URLSearchParams(new FormData(form)), mode: 'no-cors' })
+        .then(() => thankYou(form.id === 'partnerForm' ? 'partner' : ''))
+        .catch(() => HTMLFormElement.prototype.submit.call(form));
     return false;
 }
-
-// Forms on the company pages (about, book consultation, partner)
-function pageFormSubmit(e) {
-    e.preventDefault();
-    // TODO: send to the CRM / form endpoint, with consent: true and a timestamp
-    thankYou(e.target.id === 'partnerForm' ? 'partner' : '');
-    return false;
-}
+// Back button from the thank-you page can restore this page as it was left: make the forms usable again
+window.addEventListener('pageshow', e => {
+    if (!e.persisted) return;
+    document.querySelectorAll('form[data-sending]').forEach(form => {
+        delete form.dataset.sending;
+        const btn = form.querySelector('[type="submit"]');
+        if (btn && btn.dataset.label) { btn.innerHTML = btn.dataset.label; btn.disabled = false; }
+    });
+});
 
 // Thank-you page: partner enquiries get their own wording
 if (new URLSearchParams(location.search).get('type') === 'partner') {

@@ -72,7 +72,7 @@ module.exports = function templates(UI) {
     function consent(id) {
         return `
                                 <div class="form-check consent-check">
-                                    <input class="form-check-input" type="checkbox" name="consent" id="${id}Consent" required>
+                                    <input class="form-check-input" type="checkbox" name="consent" value="Yes" id="${id}Consent" required>
                                     <label class="form-check-label" for="${id}Consent">I consent to Shifara Health using my details and health information to prepare a treatment plan, share it with the hospitals and doctors I choose, and contact me. If the patient is under 18, I am their parent or guardian. <a href="/privacy-policy/" target="_blank">Privacy Policy</a></label>
                                 </div>`;
     }
@@ -83,7 +83,8 @@ module.exports = function templates(UI) {
     function quoteBox(subject, id = 'dtQuote') {
         return `
                     <div class="dt-quote" id="${id}">
-                        <form class="dt-quote-form" data-subject="${esc(subject)}">
+                        <form class="dt-quote-form" data-form="Quote box" accept-charset="UTF-8" action="https://app.formester.com/forms/HmhWy3jl2/submissions" method="POST">
+                            <input type="hidden" name="subject" value="${esc(subject)}">
                             <span class="dt-quote-kicker">100% free · reply within 24 hrs</span>
                             <h3>Get a free quote</h3>
                             <p class="dt-quote-sub">for ${esc(subject)}</p>
@@ -304,7 +305,8 @@ module.exports = function templates(UI) {
                     </div>
                     <div class="col-lg-5">
                         <div class="dt-quote dt-hero-form" id="dtQuote">
-                            <form class="dt-quote-form" data-subject="${esc(t.name)}">
+                            <form class="dt-quote-form" data-form="Quote box" accept-charset="UTF-8" action="https://app.formester.com/forms/HmhWy3jl2/submissions" method="POST">
+                                <input type="hidden" name="subject" value="${esc(t.name)}">
                                 <span class="dt-quote-kicker">100% free · Reply within 24 hrs</span>
                                 <h3>Get Free Treatment Plan</h3>
                                 <p class="dt-quote-sub">Upfront cost estimate &amp; specialist options for ${esc(t.name)}</p>
