@@ -3122,6 +3122,28 @@ footer ul small {
     gap: 6px 20px
 }
 
+/* agency credit after the copyright: its own line on phones */
+.fcredit {
+    display: inline-block;
+    margin-left: 6px
+}
+
+.fcredit a {
+    color: #fff;
+    font-weight: 600
+}
+
+.fcredit a:hover {
+    color: var(--coral)
+}
+
+@media (max-width: 767.98px) {
+    .fcredit {
+        display: block;
+        margin: 4px 0 0
+    }
+}
+
 @media (max-width: 767.98px) {
     .fmain .col-lg-4 {
         text-align: center
