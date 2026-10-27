@@ -59,8 +59,10 @@ function sendForm(e) {
     setField(form, 'submitted_at', new Date().toISOString());
     const btn = form.querySelector('[type="submit"]');
     if (btn) { btn.disabled = true; btn.dataset.label = btn.innerHTML; btn.textContent = 'Sending…'; }
-    // url-encoded, exactly what a normal form post sends
-    fetch(form.action, { method: 'POST', body: new URLSearchParams(new FormData(form)), mode: 'no-cors' })
+    // url-encoded, exactly what a normal form post sends; optional fields left empty arrive as "Not provided"
+    const data = new URLSearchParams();
+    for (const [k, v] of new FormData(form)) data.append(k, String(v).trim() || 'Not provided');
+    fetch(form.action, { method: 'POST', body: data, mode: 'no-cors' })
         .then(() => thankYou(form.id === 'partnerForm' ? 'partner' : ''))
         .catch(() => HTMLFormElement.prototype.submit.call(form));
     return false;
