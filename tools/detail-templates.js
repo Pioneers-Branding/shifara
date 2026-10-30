@@ -299,7 +299,7 @@ module.exports = function templates(UI) {
                         ${x.tagline ? `<p class="dt-tagline">${esc(x.tagline)}</p>` : ''}
                         ${t.cost ? `<div class="dt-price"><small>Starting from</small><b>${esc(startingPrice(t.cost))}</b><span>Package range ${esc(t.cost)} · indicative</span></div>` : ''}
                         <div class="dt-actions">
-                            <a href="${esc(bookUrl(t.name))}" class="btn btn-coral">Get free treatment plan ${svg('arrow', 'i')}</a>
+                            <a href="${esc(bookUrl(t.name))}" class="btn btn-coral">Let us help you ${svg('arrow', 'i')}</a>
                             <a href="${wa(`Hi Shifara, I need information about ${t.name} in India`)}" target="_blank" rel="noopener" class="btn btn-wa">${svg('wa', 'i')} Talk to an advisor</a>
                         </div>
                     </div>
@@ -308,14 +308,14 @@ module.exports = function templates(UI) {
                             <form class="dt-quote-form" data-form="Quote box" accept-charset="UTF-8" action="https://app.formester.com/forms/HmhWy3jl2/submissions" method="POST">
                                 <input type="hidden" name="subject" value="${esc(t.name)}">
                                 <span class="dt-quote-kicker">100% free · Reply within 24 hrs</span>
-                                <h3>Get Free Treatment Plan</h3>
+                                <h3>Let Us Help You</h3>
                                 <p class="dt-quote-sub">Upfront cost estimate &amp; specialist options for ${esc(t.name)}</p>
                                 <div class="d-grid gap-2">
                                     <input class="form-control" name="name" type="text" required placeholder="Full name" aria-label="Full name">
                                     <input class="form-control" name="phone" type="tel" required placeholder="WhatsApp / phone with country code" aria-label="Phone">
                                     <input class="form-control" name="email" type="email" required placeholder="Email address" aria-label="Email">
                                     <textarea class="form-control" name="message" rows="2" placeholder="Briefly describe condition or treatment required" aria-label="Message"></textarea>${consent('dtQuote')}
-                                    <button class="btn btn-coral w-100" type="submit">Get free treatment plan ${svg('arrow', 'i')}</button>
+                                    <button class="btn btn-coral w-100" type="submit">Let us help you ${svg('arrow', 'i')}</button>
                                 </div>
                                 <p class="dt-quote-note">${svg('shield')}Your medical information stays confidential.</p>
                             </form>
