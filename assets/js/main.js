@@ -146,7 +146,7 @@ if (ctryGrid) {
         ['Nanavati Max', 'hospitals/nanavati-max.png', 'Mumbai'], ['Wockhardt', 'hospitals/wockhardt.png', 'Mumbai'],
         ['HCG', 'hospitals/hcg.jpg', 'Bangalore'], ['Medicover Fertility', 'hospitals/medicover-fertility.jpg', 'Delhi NCR'],
         ['Venkateshwar Hospital', 'hospitals/venkateshwar.jpg', 'Delhi'],
-        ['Prime Super Speciality Hospital', 'hospitals/prime-super-speciality.jpg', 'India'],
+        ['Primus Super Speciality Hospital', 'hospitals/prime-super-speciality.jpg', 'Delhi'],
         ['World IVF Infertility Centre', 'hospitals/world-ivf.jpg', 'India']]
             .map(([t, img, sub]) => ({ type: 'Hospitals', title: t, sub: 'JCI / NABH accredited · ' + sub, img: U + img, href: BASE + 'hospitals/?q=' + encodeURIComponent(t.split(' ')[0]) })),
         ...[['Medical Tourism', 'globe', 'End-to-end treatment travel'], ['Step-Down Care', 'home', 'Supervised recovery stays'],
