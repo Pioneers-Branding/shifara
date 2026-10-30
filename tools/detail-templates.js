@@ -1,7 +1,7 @@
 // Shifara Health - HTML templates for the generated detail pages (used by tools/build.js only).
 // Each function returns { title, description, main } for one hospital, doctor or treatment.
 module.exports = function templates(UI) {
-    const { D, HOME, esc, svg, deptName, cityName, deptBy, hospBy, link, listUrl, wa, startingPrice, initials,
+    const { D, HOME, esc, svg, deptName, cityName, deptBy, hospBy, link, listUrl, wa, startingPrice, initials, logo,
         hospitalCard, doctorCard, treatmentCard } = UI;
 
     // ---------- Shared pieces ----------
@@ -154,7 +154,7 @@ module.exports = function templates(UI) {
 
         const intro = `
                 <div class="dt-head">
-                    <div class="dt-logo"><img src="${esc(h.logo)}" alt="${esc(h.name)} logo"></div>
+                    <div class="dt-logo">${logo(h)}</div>
                     <div class="min-w-0">
                         <h1>${esc(h.name)}</h1>
                         <p class="dt-loc">${svg('pin')}${esc(h.address || cityName(h.city))}</p>
@@ -261,7 +261,7 @@ module.exports = function templates(UI) {
                 <div class="col-lg-4">
                     <aside class="dt-side">${h ? `
                         <a class="dt-hosp" href="${link.hospital(h.id)}">
-                            <span class="dt-hosp-logo"><img src="${esc(h.logo)}" alt=""></span>
+                            <span class="dt-hosp-logo">${logo(h, '')}</span>
                             <span class="min-w-0"><small>Practises at</small><b>${esc(h.name)}</b><span>${esc(h.address || cityName(h.city))}</span></span>
                             ${svg('arrow', 'i')}
                         </a>` : ''}${quoteBox(d.name)}

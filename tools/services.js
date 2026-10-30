@@ -56,6 +56,35 @@ module.exports = [
             ['Move after discharge', 'We transfer you from the hospital to your recovery stay.'],
             ['Recover & review', 'Nursing, physio and follow-ups until your doctor clears you to fly.'],
         ],
+        // Partner cards (same layout as the air ambulance partners); add `image` / `imageAlt` to show a photo
+        partners: {
+            eyebrow: 'Our Step-Down Partners',
+            title: 'Where You <em>Recover</em>',
+            icon: 'home',
+            intro: [
+                'After discharge, many patients are not ready to stay in a hotel but no longer need a hospital bed. Shifara Health works with step-down care partners who provide supervised recovery stays close to the treating hospital, so you can rest, follow your recovery plan and attend follow-up visits before you fly home.',
+            ],
+            list: [
+                {
+                    name: 'Max Antara Senior Living',
+                    about: 'Antara is the senior care business of the Max Group. Its care homes offer recuperative care for recovery before and after a hospital stay, assisted living for people who need help with daily activities, and rehabilitation.',
+                    facts: [['shield', 'Part of', 'Max Group'], ['home', 'Partner for', 'Step-down care']],
+                    lists: [
+                        ['check', 'Care offered', ['Recuperative care after a hospital stay', 'Assisted living', 'Rehabilitation']],
+                        ['heart', 'Suited for', ['Patients recovering after surgery', 'Elderly patients who need help with daily activities', 'Patients who need supervision before flying home']],
+                    ],
+                },
+                {
+                    name: 'Osvi Healthcare',
+                    about: 'Osvi Healthcare is a Shifara Health partner for step-down care and nursing home stays, for patients who need supervised recovery after leaving hospital.',
+                    facts: [['home', 'Partner for', 'Step-down care and nursing home']],
+                    lists: [
+                        ['check', 'Care offered', ['Step-down care after discharge', 'Nursing home stays']],
+                        ['heart', 'Suited for', ['Patients who need supervised recovery', 'Patients who need nursing support for a longer stay']],
+                    ],
+                },
+            ],
+        },
         who: ['Patients after joint replacement, spine or cardiac surgery', 'Patients who need dressings or medicines supervised after discharge', 'Families who cannot stay in a hotel without medical support'],
         faqs: [
             ['Is step-down care a hospital?', 'No. It is a supervised recovery stay for patients who are well enough to leave hospital but still need support. Medical decisions remain with your treating doctor.'],
@@ -87,6 +116,25 @@ module.exports = [
             ['Care begins', 'Your caregiver starts on the agreed shift and schedule.'],
             ['Review regularly', 'We check in and adjust the plan as you recover.'],
         ],
+        partners: {
+            eyebrow: 'Our Nursing Home Partner',
+            title: 'Nursing Home <em>Care</em>',
+            icon: 'nurse',
+            intro: [
+                'When a patient needs nursing support for longer than a hotel or apartment stay allows, we arrange a stay with our nursing home partner, coordinated with the treating hospital.',
+            ],
+            list: [
+                {
+                    name: 'Osvi Healthcare',
+                    about: 'Osvi Healthcare is a Shifara Health partner for nursing home stays and step-down care, for patients who need supervised recovery after leaving hospital.',
+                    facts: [['nurse', 'Partner for', 'Nursing home and step-down care']],
+                    lists: [
+                        ['check', 'Care offered', ['Nursing home stays', 'Step-down care after discharge']],
+                        ['heart', 'Suited for', ['Patients who need nursing support for a longer stay', 'Patients who need supervised recovery']],
+                    ],
+                },
+            ],
+        },
         who: ['Patients in hospital whose family cannot stay round the clock', 'Patients recovering at a hotel or apartment', 'Elderly patients who need help with mobility and daily care'],
         faqs: [
             ['What is the difference between a nurse and a GDA?', 'A nurse is trained for clinical tasks such as injections and dressings. A GDA helps with daily needs like mobility, personal care and meals.'],

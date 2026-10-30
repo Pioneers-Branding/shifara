@@ -253,9 +253,10 @@ ${body.trim().split('\n').map(l => '                ' + l).join('\n')}
 // ---------- Service pages (content in tools/services.js) ----------
 const SERVICES = require('./services.js');
 const icon = (id, cls = '') => `<svg${cls ? ` class="${cls}"` : ''}><use href="#${id}" /></svg>`;
-// Partner cards (air ambulance): photo or brand panel beside the profile, then services / capabilities / fleet
+// Partner cards (air ambulance, step-down, nursing home): photo or brand panel beside the profile, then lists.
+// A partner's `lists` ([icon, heading, items, boxed]) default to the air ambulance services / capabilities / fleet.
 function partnersSection(p) {
-    const list = (ic, label, items, boxed) => `                                <div class="col-md-4">
+    const list = (ic, label, items, boxed, cols) => `                                <div class="col-md-${12 / cols}">
                                     <h4 class="svp-ptr-h">${icon(ic)}${label}</h4>
                                     <ul class="svp-ptr-list${boxed ? ' fleet' : ''}">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
                                 </div>`;
@@ -266,10 +267,12 @@ function partnersSection(p) {
                     <h2 class="title">${p.title}</h2>
 ${p.intro.map(t => `                    <p class="svp-ptr-intro">${esc(t)}</p>`).join('\n')}
                 </div>
-${p.list.map((c, i) => `                <article class="svp-ptr">
+${p.list.map((c, i) => {
+        const lists = c.lists || [['check', 'Services offered', c.services], ['heart', 'Medical capabilities', c.capabilities], ['amb', 'Fleet available', c.fleet, true]];
+        return `                <article class="svp-ptr">
                     <div class="row g-0${i % 2 ? ' flex-lg-row-reverse' : ''}">
                         <div class="col-lg-5">
-                            <div class="svp-ptr-img${c.image ? ' photo' : ''}">${c.image ? `<img src="${esc(c.image)}" alt="${esc(c.imageAlt || c.name)}" loading="lazy">` : `${icon('amb')}<b>${esc(c.name)}</b>`}</div>
+                            <div class="svp-ptr-img${c.image ? ' photo' : ''}">${c.image ? `<img src="${esc(c.image)}" alt="${esc(c.imageAlt || c.name)}" loading="lazy">` : `${icon(p.icon || 'amb')}<b>${esc(c.name)}</b>`}</div>
                         </div>
                         <div class="col-lg-7">
                             <div class="svp-ptr-body">
@@ -282,12 +285,11 @@ ${p.list.map((c, i) => `                <article class="svp-ptr">
                     </div>
                     <div class="svp-ptr-foot">
                         <div class="row g-4">
-${list('check', 'Services offered', c.services)}
-${list('heart', 'Medical capabilities', c.capabilities)}
-${list('amb', 'Fleet available', c.fleet, true)}
+${lists.map(([ic, label, items, boxed]) => list(ic, label, items, boxed, lists.length)).join('\n')}
                         </div>
                     </div>
-                </article>`).join('\n')}
+                </article>`;
+    }).join('\n')}
             </div>
         </section>
 `;

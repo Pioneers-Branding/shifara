@@ -75,11 +75,16 @@ window.ShifaraUI = (() => {
         return name.replace(/^Dr\.?\s*(\(.*?\)\s*)?/i, '').split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
     }
 
+    // hospital logo, or its initials when there is no logo file yet
+    const logo = (h, alt = `${h.name} logo`) => h.logo
+        ? `<img src="${esc(asset(h.logo))}" alt="${esc(alt)}" loading="lazy">`
+        : `<span class="lc-initials" aria-label="${esc(h.name)}">${esc(initials(h.name))}</span>`;
+
     function hospitalCard(h) {
         const url = link.hospital(h.id);
         return `<div class="col"><article class="lc">
             <div class="lc-head">
-                <a href="${url}" class="lc-logo"><img src="${esc(asset(h.logo))}" alt="${esc(h.name)} logo" loading="lazy"></a>
+                <a href="${url}" class="lc-logo">${logo(h)}</a>
                 <div class="min-w-0">
                     <h3><a href="${url}">${esc(h.name)}</a></h3>
                     <p class="lc-loc">${svg('pin')}${esc(h.address || cityName(h.city))}</p>
@@ -138,7 +143,7 @@ window.ShifaraUI = (() => {
     }
 
     return {
-        D, BASE, HOME, asset, sitePath, WA, deptBy, cityBy, hospBy, treatBy, docBy, esc, svg, deptName, cityName, link, listUrl, readFilters, pathId, wa, startingPrice,
+        D, BASE, HOME, asset, logo, sitePath, WA, deptBy, cityBy, hospBy, treatBy, docBy, esc, svg, deptName, cityName, link, listUrl, readFilters, pathId, wa, startingPrice,
         initials, hospitalCard, doctorCard, treatmentCard,
     };
 })();
