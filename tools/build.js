@@ -11,6 +11,7 @@
 //   about-us/  concierge/  country-comparison/  partner-with-us/  book-consultation/   company pages (content in tools/pages/<slug>.html)
 //   hospitals/cardiology/delhi/ …                 a copy of the listing page for every filter URL some page links to
 //   404.html                                      not-found page; sends unknown filter URLs on to the listing page
+//   sitemap.xml  robots.txt                       every indexable page folder (tools/sitemap.js)
 //
 // All links are saved relative to each page's folder, so the site runs at a domain root, in a subfolder,
 // on any static server (Apache, Nginx, Netlify, VS Code Live Server…) and from disk.
@@ -530,6 +531,9 @@ write('404.html', layout({
     </main>
 `,
 }).replace('<head>', '<head>\n    <meta name="robots" content="noindex">'), { asIs: true });
+
+// ---------- sitemap.xml + robots.txt (from the page folders now on disk) ----------
+require('./sitemap.js');
 
 console.log(`written: ${stats.written} | unchanged: ${stats.unchanged} | skipped (edited by hand): ${stats.skipped.length}`);
 if (stats.skipped.length) {

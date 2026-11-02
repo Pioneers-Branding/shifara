@@ -5,6 +5,7 @@
 //   /hospital/<id>/, /doctor/<id>/, /treatment/<id>/  -> real folders (index.html)
 //   /hospitals/<filters…>/ etc.                         -> real folder if generated, else redirect to
 //                                                          /hospitals/?path=<filters…> (listing.js shows the clean URL)
+//   /doctors/<id>/ etc. (old WordPress URLs)            -> 301 to /doctor/<id>/ when that page exists
 //   anything else missing                               -> 404.html
 const http = require('http');
 const fs = require('fs');
@@ -16,6 +17,7 @@ const TYPES = {
     '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
     '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp',
     '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
+    '.xml': 'application/xml; charset=utf-8', '.txt': 'text/plain; charset=utf-8',
 };
 const isFile = p => { try { return fs.statSync(p).isFile(); } catch { return false; } };
 const isDir = p => { try { return fs.statSync(p).isDirectory(); } catch { return false; } };
@@ -30,6 +32,9 @@ function resolve(urlPath) {
         }
     }
     if (isFile(full)) return { file: full };
+    // old WordPress detail URLs (/doctors/<id>/) moved to /doctor/<id>/
+    const old = urlPath.match(/^\/(hospital|doctor|treatment)s\/([^/]+)\/?$/);
+    if (old && isFile(path.join(ROOT, old[1], old[2], 'index.html'))) return { redirect: `/${old[1]}/${old[2]}/` };
     // pages use relative links, so the listing page is opened from its own folder rather than rewritten
     const listing = urlPath.match(/^\/(hospitals|doctors|treatments)\/(.+)$/);
     if (listing) return { redirect: `/${listing[1]}/?path=${encodeURIComponent(listing[2])}`, temporary: true };

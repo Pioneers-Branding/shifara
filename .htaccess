@@ -5,11 +5,19 @@
 #                                                       redirect to /hospitals/?path=cardiology/delhi/ (pages use
 #                                                       relative links, so the listing page must open from its
 #                                                       own folder); listing.js puts the clean URL back
+#   /doctors/<id>/  /hospitals/<id>/  /treatments/<id>/ old WordPress detail URLs: 301 to /doctor/<id>/ …
 DirectoryIndex index.html
 Options -Indexes
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Old WordPress detail URLs moved to /doctor/<id>/, /hospital/<id>/, /treatment/<id>/. Only when the old
+    # path is not a page of its own (filter pages such as /doctors/artemis/ stay) and the new page exists.
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} ^(.*/)(hospital|doctor|treatment)s/([^/]+)/?$
+    RewriteCond %{DOCUMENT_ROOT}%1%2/%3/index.html -f
+    RewriteRule ^ %1%2/%3/ [R=301,L]
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
