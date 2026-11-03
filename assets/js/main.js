@@ -99,15 +99,41 @@ if (new URLSearchParams(location.search).get('type') === 'partner') {
     if (country && [...sel.options].some(o => o.value === country)) sel.value = country;
 })();
 
-// Countries: [ISO code, name]
+// Countries: [ISO code, name, international dialling code]
 const COUNTRIES = [
-    ['bd', 'Bangladesh'],
-    ['iq', 'Iraq'], ['ir', 'Iran'], ['sa', 'Saudi Arabia'], ['ye', 'Yemen'], ['om', 'Oman'],
-    ['ng', 'Nigeria'], ['ke', 'Kenya'], ['et', 'Ethiopia'], ['tz', 'Tanzania'], ['ug', 'Uganda'],
-    ['gh', 'Ghana'], ['sd', 'Sudan'], ['ss', 'South Sudan'], ['so', 'Somalia'], ['rw', 'Rwanda'],
-    ['zm', 'Zambia'], ['zw', 'Zimbabwe'], ['cm', 'Cameroon'], ['cd', 'DR Congo'], ['mz', 'Mozambique'],
-    ['mw', 'Malawi'], ['eg', 'Egypt']
+    ['bd', 'Bangladesh', '880'],
+    ['iq', 'Iraq', '964'], ['ir', 'Iran', '98'], ['sa', 'Saudi Arabia', '966'], ['ye', 'Yemen', '967'], ['om', 'Oman', '968'],
+    ['ng', 'Nigeria', '234'], ['ke', 'Kenya', '254'], ['et', 'Ethiopia', '251'], ['tz', 'Tanzania', '255'], ['ug', 'Uganda', '256'],
+    ['gh', 'Ghana', '233'], ['sd', 'Sudan', '249'], ['ss', 'South Sudan', '211'], ['so', 'Somalia', '252'], ['rw', 'Rwanda', '250'],
+    ['zm', 'Zambia', '260'], ['zw', 'Zimbabwe', '263'], ['cm', 'Cameroon', '237'], ['cd', 'DR Congo', '243'], ['mz', 'Mozambique', '258'],
+    ['mw', 'Malawi', '265'], ['eg', 'Egypt', '20']
 ];
+
+// Phone fields follow the form's country: the hint shows that country's code, and an empty phone field
+// (or one still holding only the previous country's code) is pre-filled with it. A form without a country
+// field can give a fixed code instead (<input name="phone" data-dial="91">, the partner form).
+(() => {
+    const dial = Object.fromEntries(COUNTRIES.map(([, name, code]) => [name, code]));
+    document.querySelectorAll('form input[name="phone"]').forEach(phone => {
+        const sel = phone.form.querySelector('select[name="country"]');
+        if (!sel && !phone.dataset.dial) return;
+        const hint = phone.placeholder;
+        const sync = () => {
+            const code = sel ? dial[sel.value] : phone.dataset.dial;
+            phone.placeholder = code ? `+${code} phone number` : hint;
+            const val = phone.value.trim();
+            if (!val || val === phone.dataset.prefix) {
+                phone.value = code ? `+${code} ` : '';
+                phone.dataset.prefix = code ? `+${code}` : '';
+            }
+        };
+        // the pre-filled code alone is not a phone number
+        const check = () => phone.setCustomValidity(phone.dataset.prefix && phone.value.trim() === phone.dataset.prefix ? 'Please enter your phone number after the country code.' : '');
+        if (sel) sel.addEventListener('change', () => { sync(); check(); });
+        phone.addEventListener('input', check);
+        if (!sel || sel.value) { sync(); check(); } // fixed code, or Book consultation opened with ?country=…
+    });
+})();
 const ctryGrid = document.getElementById('ctryGrid');
 if (ctryGrid) {
     COUNTRIES.forEach(([code, name]) => {
