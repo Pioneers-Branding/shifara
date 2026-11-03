@@ -2,9 +2,10 @@
 //
 //   node tools/sitemap.js     (tools/build.js also runs it after building the pages)
 //
-// The sitemap lists every page folder with an index.html, except pages marked noindex (thank-you) and the
-// assets/ and tools/ folders. lastmod is the date of the last git commit that changed the page: today for
-// uncommitted changes, the file's modified date when git is not available.
+// The sitemap lists every page folder with an index.html, except pages marked noindex (thank-you), pages whose
+// canonical points at another URL (a doctor listed at two branches) and the assets/ and tools/ folders.
+// lastmod is the date of the last git commit that changed the page: today for uncommitted changes, the file's
+// modified date when git is not available.
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -46,9 +47,14 @@ const lastmod = rel => changed.get(rel) || fs.statSync(path.join(ROOT, rel)).mti
 
 // ---------- sitemap.xml ----------
 const xmlEsc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const locOf = rel => `${SITE}/${rel.replace(/index\.html$/, '')}`;
 const urls = pages
-    .filter(rel => !NOINDEX.test(fs.readFileSync(path.join(ROOT, rel), 'utf8')))
-    .map(rel => ({ loc: `${SITE}/${rel.replace(/index\.html$/, '')}`, lastmod: lastmod(rel) }))
+    .filter(rel => {
+        const html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+        const canonical = (html.match(/<link rel="canonical" href="([^"]*)"/) || [])[1];
+        return !NOINDEX.test(html) && (!canonical || canonical === locOf(rel));
+    })
+    .map(rel => ({ loc: locOf(rel), lastmod: lastmod(rel) }))
     .sort((a, b) => (a.loc < b.loc ? -1 : a.loc > b.loc ? 1 : 0));
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

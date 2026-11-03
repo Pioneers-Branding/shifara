@@ -1,6 +1,7 @@
 // Shifara Health - HTML templates for the generated detail pages (used by tools/build.js only).
-// Each function returns { title, description, main } for one hospital, doctor or treatment.
-module.exports = function templates(UI) {
+// Each function returns { title, description, main } for one hospital, doctor or treatment, plus { head } (canonical,
+// social and schema.org tags, with absolute URLs on SITE) where the page has one.
+module.exports = function templates(UI, SITE) {
     const { D, HOME, esc, svg, deptName, cityName, deptBy, hospBy, link, listUrl, wa, startingPrice, initials, logo,
         hospitalCard, doctorCard, treatmentCard } = UI;
 
@@ -11,6 +12,12 @@ module.exports = function templates(UI) {
     const byExperience = (a, b) => (b.experience || 0) - (a.experience || 0);
     const firstText = tabs => (tabs?.[0]?.blocks || []).find(b => b.t === 'p')?.text || '';
     const clip = s => (s || '').replace(/\s+/g, ' ').trim().slice(0, 158);
+    // first candidate that fits, else the last one cut at a word
+    const fit = (max, ...options) => options.find(o => o.length <= max) ||
+        options.at(-1).slice(0, max - 1).replace(/[\s,;:–-]+\S*$/, '') + '…';
+    const strip = html => html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    // JSON-LD inside <script>: "</" must not close the tag
+    const jsonLd = data => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
 
     function crumb(items) {
         return `<nav class="lp-crumb dt-crumb" aria-label="Breadcrumb"><a href="${HOME}">Home</a>` +
@@ -58,12 +65,13 @@ module.exports = function templates(UI) {
         return tabs.map(t => section(t.title, (special[t.title] || leadCards)(t.blocks) || blocksHtml(t.blocks))).join('');
     }
 
+    // titles: section titles, or [short label, section title] pairs
     function subnav(titles) {
         if (!titles.length) return '';
         return `
         <nav class="dt-subnav" aria-label="On this page">
-            <div class="dt-subnav-inner">${titles.map(t => `
-                <a href="#sec-${slug(t)}">${esc(t)}</a>`).join('')}
+            <div class="dt-subnav-inner">${titles.map(t => Array.isArray(t) ? t : [t, t]).map(([label, t]) => `
+                <a href="#sec-${slug(t)}">${esc(label)}</a>`).join('')}
             </div>
         </nav>`;
     }
@@ -225,27 +233,299 @@ module.exports = function templates(UI) {
     }
 
     // ---------- Doctor ----------
+    // The role in the title, H1 area and schema ("Liver Transplant Surgeon") is read from the designation: the
+    // department is often only "General Surgery" for transplant, cardiac and cancer surgeons. First match wins,
+    // so narrower roles come before the broad ones they contain.
+    const ROLES = [
+        [/paediatric|pediatric/i, [
+            [/cardiac surg|cardio.?thoracic|heart surg/i, 'Paediatric Cardiac Surgeon'],
+            [/cardiolog/i, 'Paediatric Cardiologist'],
+            [/gastro|hepatolog/i, 'Paediatric Gastroenterologist'],
+            [/neurosurg/i, 'Paediatric Neurosurgeon'],
+            [/neurolog/i, 'Paediatric Neurologist'],
+            [/orthop/i, 'Paediatric Orthopaedic Surgeon'],
+            [/haemato|hemato|bone marrow|bmt/i, 'Paediatric Haematologist'],
+            [/oncolog/i, 'Paediatric Oncologist'],
+            [/nephrolog/i, 'Paediatric Nephrologist'],
+            [/\burolog/i, 'Paediatric Urologist'],
+            [/surg/i, 'Paediatric Surgeon'],
+        ]],
+        [/radiation oncolog|radiotherap/i, 'Radiation Oncologist'],
+        [/medical oncolog/i, 'Medical Oncologist'],
+        [/gyn(a)?ec(o)?log(ic|ical)? oncolog|gynae?.?onco/i, 'Gynaecologic Oncologist'],
+        [/haemato.?oncolog|hemato.?oncolog/i, 'Haemato-Oncologist'],
+        [/bone marrow|bmt/i, 'Bone Marrow Transplant Specialist'],
+        [/head (&|and) neck/i, [
+            [/onco|cancer/i, 'Head & Neck Cancer Surgeon'],
+            [/./, 'ENT Surgeon'],
+        ]],
+        [/surgical oncolog|onco.?surg|cancer surg/i, 'Surgical Oncologist'],
+        [/orthop(a)?edic onco|musculoskeletal onco|bone (and|&) soft tissue/i, 'Orthopaedic Oncologist'],
+        [/cardiac surg|cardio.?thoracic|ctvs|heart surg/i, 'Cardiac Surgeon'],
+        [/electrophysiolog/i, 'Cardiac Electrophysiologist'],
+        [/interventional cardiolog/i, 'Interventional Cardiologist'],
+        [/cardiolog/i, 'Cardiologist'],
+        [/neurosurg|neuro surg|neuro-surg/i, 'Neurosurgeon'],
+        [/neuro.?interven/i, 'Interventional Neuroradiologist'],
+        [/neurolog/i, 'Neurologist'],
+        [/spine/i, 'Spine Surgeon'],
+        [/joint replacement|arthroplasty/i, 'Joint Replacement Surgeon'],
+        [/sports (medicine|injur)|arthroscop/i, 'Orthopaedic & Sports Injury Surgeon'],
+        [/orthop/i, 'Orthopaedic Surgeon'],
+        [/gastroenterolog/i, 'Gastroenterologist'],
+        [/hepatolog/i, 'Hepatologist'],
+        [/liver transplant/i, 'Liver Transplant Surgeon'],
+        [/bariatric|metabolic surg/i, 'Bariatric Surgeon'],
+        [/gi surg|gastro.?intestinal surg|hpb|hepato.?pancreat|colorectal/i, 'GI Surgeon'],
+        [/plastic|aesthetic|cosmetic/i, 'Plastic Surgeon'],
+        [/\burolog|androlog/i, 'Urologist'],
+        [/nephrolog/i, 'Nephrologist'],
+        [/ivf|reproductive|infertility|fertility/i, 'IVF Specialist'],
+        [/obstetric|gyn(a)?ec/i, 'Gynaecologist'],
+        [/pulmonolog|chest|respiratory|lung/i, 'Pulmonologist'],
+        [/\bent\b|otorhino|otolaryng/i, 'ENT Surgeon'],
+        [/ophthalm|retina|cornea|cataract|\beye\b/i, 'Ophthalmologist'],
+        [/endocrin|diabet/i, 'Endocrinologist'],
+        [/rheumat/i, 'Rheumatologist'],
+        [/dermat|skin/i, 'Dermatologist'],
+        [/psychiat/i, 'Psychiatrist'],
+        [/haematolog|hematolog/i, 'Haematologist'],
+        [/interventional radiolog/i, 'Interventional Radiologist'],
+        [/vascular/i, 'Vascular Surgeon'],
+        [/nuclear medicine/i, 'Nuclear Medicine Specialist'],
+        [/anaesthe|anesthe/i, 'Anaesthesiologist'],
+        [/patholog/i, 'Pathologist'],
+        [/maxillofacial/i, 'Maxillofacial Surgeon'],
+        [/dental|dentist|orthodont|endodont|prosthodont/i, 'Dental Surgeon'],
+        [/palliative/i, 'Palliative Care Specialist'],
+        [/laparoscop|minimal access/i, 'Laparoscopic Surgeon'],
+        [/oncolog/i, 'Oncologist'],
+        [/infectious/i, 'Infectious Disease Specialist'],
+        [/physiotherap/i, 'Physiotherapist'],
+        [/internal medicine|general medicine|physician/i, 'Internal Medicine Physician'],
+        [/general surg/i, 'General Surgeon'],
+    ];
+    const DEPT_ROLE = {
+        'general-surgery': 'General Surgeon', oncology: 'Oncologist', cardiology: 'Cardiologist', orthopedics: 'Orthopaedic Surgeon',
+        neurology: 'Neurologist', gynecology: 'Gynaecologist', urology: 'Urologist', gastroenterology: 'Gastroenterologist',
+        cosmetic: 'Plastic Surgeon', pediatrics: 'Paediatrician', nephrology: 'Nephrologist', ent: 'ENT Surgeon',
+        hematology: 'Haematologist', 'internal-medicine': 'Internal Medicine Physician', pulmonology: 'Pulmonologist',
+        'spine-surgery': 'Spine Surgeon', ophthalmology: 'Ophthalmologist', vascular: 'Vascular Surgeon',
+        endocrinology: 'Endocrinologist', bariatric: 'Bariatric Surgeon', dental: 'Dental Surgeon', ivf: 'IVF Specialist',
+        transplant: 'Transplant Surgeon', dermatology: 'Dermatologist', rheumatology: 'Rheumatologist',
+        'nuclear-medicine': 'Nuclear Medicine Specialist', psychiatry: 'Psychiatrist', anesthesiology: 'Anaesthesiologist',
+        pathology: 'Pathologist', 'palliative-care': 'Palliative Care Specialist',
+    };
+    // "Senior Consultant – Oncology" says less than the MD (Radiation Oncology) before it
+    const GENERIC_ROLES = new Set(['Oncologist', 'General Surgeon', 'Internal Medicine Physician']);
+    // where the position starts in "MBBS, MS (General Surgery), MCh (Urology) Head – Department of Urology"
+    const POSITION = /\b(Senior|Sr\.?|Associate|Principal|Consultant|Director|Head|HOD|Chief|Chairman|Chairperson|Vice|Additional|Attending|Lead|Unit|Executive|Clinical|Program|Programme|Founder|Co-?founder|Professor|Group|Visiting|Specialist|Registrar|Junior|Medical|Managing|Dean|President|Mentor)\b/;
+    // the treatment department a role belongs to, for the cost table and schema specialty
+    // (\b keeps "Neurologist" out of urology)
+    const ROLE_DEPT = [
+        [/\burolog/i, 'urology'], [/onco|cancer/i, 'oncology'], [/nephrolog/i, 'nephrology'], [/spine/i, 'spine-surgery'],
+        [/neuro/i, 'neurology'], [/orthop|joint|sports/i, 'orthopedics'], [/cardi|electrophys/i, 'cardiology'],
+        [/gastro|hepatolog|gi surgeon/i, 'gastroenterology'], [/liver transplant/i, 'transplant'], [/ivf/i, 'ivf'],
+        [/bariatric/i, 'bariatric'], [/ent surgeon/i, 'ent'], [/plastic|maxillofacial/i, 'cosmetic'], [/gynae/i, 'gynecology'],
+        [/pulmonolog/i, 'pulmonology'], [/haemato|bone marrow/i, 'hematology'], [/endocrin/i, 'endocrinology'],
+        [/ophthalm/i, 'ophthalmology'], [/vascular|interventional radiolog/i, 'vascular'],
+    ];
+    const SPECIALTY = {
+        cardiology: 'Cardiovascular', oncology: 'Oncologic', neurology: 'Neurologic', orthopedics: 'Musculoskeletal',
+        'spine-surgery': 'Musculoskeletal', gynecology: 'Gynecologic', ivf: 'Gynecologic', urology: 'Urologic',
+        gastroenterology: 'Gastroenterologic', cosmetic: 'PlasticSurgery', pediatrics: 'Pediatric', nephrology: 'Renal',
+        ent: 'Otolaryngologic', hematology: 'Hematologic', pulmonology: 'Pulmonary', endocrinology: 'Endocrine',
+        dental: 'Dentistry', dermatology: 'Dermatology', rheumatology: 'Rheumatologic', psychiatry: 'Psychiatric',
+        anesthesiology: 'Anesthesia', pathology: 'Pathology', 'general-surgery': 'Surgical', bariatric: 'Surgical',
+        vascular: 'Surgical', transplant: 'Surgical', 'internal-medicine': 'PrimaryCare',
+    };
+
+    function matchRole(text, rules = ROLES) {
+        for (const [re, role] of rules) {
+            if (!re.test(text)) continue;
+            const r = Array.isArray(role) ? matchRole(text, role) : role;
+            if (r) return r;
+        }
+        return '';
+    }
+    function designationParts(s) {
+        const at = s.search(POSITION);
+        return { degrees: at > 0 ? s.slice(0, at).trim().replace(/,$/, '') : '', position: at >= 0 ? s.slice(at).trim() : s };
+    }
+    // the degrees often include MS (General Surgery) for every surgeon, so the position is read first
+    function doctorRole(d) {
+        const { degrees, position } = designationParts(d.designation || '');
+        const role = matchRole(position), fromDegree = matchRole((degrees.match(/\(([^)]*)\)[^(]*$/) || [])[1] || '');
+        if (role && !(GENERIC_ROLES.has(role) && fromDegree && !GENERIC_ROLES.has(fromDegree))) return role;
+        return fromDegree || matchRole(d.speciality || '') || DEPT_ROLE[d.departments[0]] || 'Specialist';
+    }
+    // "MBBS, MS (General Surgery), MCh (Urology)" -> one entry per degree (commas inside brackets stay)
+    function degreeList(s) {
+        const out = [];
+        let depth = 0, cur = '';
+        for (const ch of s) {
+            depth += ch === '(' ? 1 : ch === ')' ? -1 : 0;
+            if (ch === ',' && !depth) { out.push(cur); cur = ''; } else cur += ch;
+        }
+        return [...out, cur].map(x => x.trim()).filter(Boolean);
+    }
+
+    // section headings that carry the doctor's name, with the short label used in the "On this page" bar
+    const DOCTOR_TABS = {
+        'About the Doctor': [n => `About ${n}`, 'About'],
+        'Areas of Expertise': [n => `${n}'s Areas of Expertise`, 'Expertise'],
+        'Key Achievements': [n => `Key Achievements of ${n}`, 'Achievements'],
+        'Awards & Recognition': [n => `Awards & Recognition`, 'Awards'],
+    };
+
     function doctor(d, x) {
-        const tabs = x.tabs || [];
         const h = d.hospitalId ? hospBy[d.hospitalId] : null;
         const dept = d.departments[0];
-        const photo = d.image ? `<img src="${esc(d.image)}" alt="${esc(d.name)}">` : `<span class="lc-initials">${esc(initials(d.name))}</span>`;
-        const peers = D.doctors.filter(o => o.id !== d.id && dept && o.departments.includes(dept));
+        const city = cityName(d.city);
+        const role = doctorRole(d);
+        // the page targets India as a whole: the city stays in the facts and address, not in the title or headings
+        const roleIn = `${role} in India`;
+        const exp = d.experience ? ` with ${d.experience}+ years of experience` : '';
+        const tabs = (x.tabs || []).map((t, i) => {
+            const [heading, nav] = DOCTOR_TABS[t.title] || [() => t.title, t.title];
+            const blocks = i === 0 ? [{ t: 'p', text: `${d.name} is a ${roleIn}${exp}, currently at ${d.hospital}.` }, ...t.blocks] : t.blocks;
+            return { ...t, title: heading(d.name), nav, blocks };
+        });
+        const { degrees, position } = designationParts(d.designation || '');
+        const quals = degreeList(degrees);
+        const url = `${SITE}/doctor/${d.id}/`;
+        // the same doctor listed at two branches (same name and designation) points search engines at the first profile
+        const same = D.doctors.find(o => o.name === d.name && o.designation === d.designation);
+        const canonical = `${SITE}/doctor/${same.id}/`;
+        const hospLink = h ? `<a href="${link.hospital(h.id)}">${esc(h.name)}</a>` : esc(d.hospital);
+        const roleDept = ROLE_DEPT.find(([re]) => re.test(role))?.[1];
+        const depts = [...new Set([roleDept, ...d.departments].filter(Boolean))];
+        const treatments = depts.flatMap(s => D.treatments.filter(t => t.department === s && t.cost)).slice(0, 6);
+        const expertise = (x.tabs || []).find(t => t.title === 'Areas of Expertise')?.blocks.filter(b => b.lead).map(b => b.lead) || [];
+        const photo = d.image
+            ? `<img src="${esc(d.image)}" alt="${esc(`${d.name} - ${roleIn}`)}" fetchpriority="high">`
+            : `<span class="lc-initials">${esc(initials(d.name))}</span>`;
+        // doctors with the same role first ("More Liver Transplant Surgeons"), then the rest of the department
+        const others = D.doctors.filter(o => o.id !== d.id);
+        const sameRole = top(others.filter(o => doctorRole(o) === role), 3, byExperience);
+        const peers = sameRole.length === 3 ? sameRole
+            : [...sameRole, ...top(others.filter(o => !sameRole.includes(o) && dept && o.departments.includes(dept)), 3 - sameRole.length, byExperience)];
+        const peerDept = sameRole.length && roleDept ? roleDept : dept;
+
+        // up to 70 characters so long names keep "in India"; Google may shorten the brand suffix in results
+        const title = fit(70, `${d.name} - ${roleIn}`, `${d.name} - ${role}`, d.name);
+        const years = d.experience ? ` ${d.experience}+ years' experience.` : '';
+        const description = fit(158,
+            `${d.name} is a ${roleIn} at ${d.hospital}${exp}. Book a consultation from abroad and get a free cost estimate.`,
+            `${d.name}, ${roleIn} at ${d.hospital}.${years} Book a consultation and get a free cost estimate.`,
+            `${d.name}, ${roleIn} at ${d.hospital}.${years} Book a free consultation.`,
+            `${d.name}, ${roleIn} at ${d.hospital}. Book a free consultation.`);
+
+        // How an international patient gets to this doctor; wording follows the booking, visa and concierge pages
+        const steps = [
+            ['Share your reports', 'Send your reports and scans on WhatsApp or through the form on this page. A Shifara case manager replies within 24 hours.'],
+            ['Get an opinion and cost estimate', `We share your case with ${d.name} at ${d.hospital} and send you the treatment plan with a written cost estimate, free.`],
+            ...(x.fee ? [['Video consultation', `Speak to ${d.name} on a video call before you travel to India. The consultation fee is ${x.fee}.`]] : []),
+            ['Medical visa and travel', 'We arrange the hospital invitation letter for your e-Medical Visa and guide you through the application, free. Your case manager stays with you from the airport to the day you fly home.'],
+            ['Treatment and follow-up', `After treatment we schedule your follow-up consultations with ${d.name}, including after you return home.`],
+        ];
+        const faqs = [
+            [`Who is ${d.name}?`, `${esc(d.name)} is a ${esc(roleIn)}${esc(exp)}, practising at ${hospLink}.${quals.length ? ` Qualifications: ${esc(quals.join(', '))}.` : ''}`],
+            ...(h ? [[`Which hospital does ${d.name} practise at?`, `${esc(d.name)} practises at ${hospLink}, ${esc(h.address || city)}.`]] : []),
+            [`How can international patients book an appointment with ${d.name}?`, `Send your medical reports to Shifara Health on WhatsApp or through the form on this page. A case manager replies within 24 hours, arranges your appointment with ${esc(d.name)} and shares a written cost estimate. Our help is free for patients.`],
+            ...(x.fee ? [[`Does ${d.name} offer video consultation?`, `Yes. You can book a <a href="${esc(bookUrl('Video consultation with ' + d.name))}">video consultation with ${esc(d.name)}</a> before you travel to India. The fee is ${esc(x.fee)}.`]] : []),
+            [`What does treatment with ${d.name} cost?`, `The cost depends on the procedure, the room category and how long you stay in hospital. Share your reports and we will get a written estimate from ${esc(d.hospital)} at no charge.${treatments.length ? ' Indicative costs for related treatments are listed above.' : ''}`],
+            [`Do I need a medical visa to see ${d.name} in India?`, `Most international patients travel on India's e-Medical Visa. Once the hospital confirms your treatment plan, we arrange the invitation letter and guide you through the application, free. Read our <a href="/travel-visa/">medical visa guide</a>.`],
+        ];
+
+        // [section title, html, short label for the "On this page" bar]
+        const extra = [
+            ...(quals.length || position ? [[`${d.name}'s Qualifications & Experience`, `
+                        <p>${esc(d.name)}, ${esc(roleIn)}${esc(exp)}.</p>${quals.length ? `
+                        <ul class="dt-list">${quals.map(q => `
+                            <li>${svg('check')}<span>${esc(q)}</span></li>`).join('')}
+                        </ul>` : ''}${position ? `
+                        <p><b>Current position:</b> ${esc(position)}</p>` : ''}`, 'Qualifications']] : []),
+            [`Consult ${d.name} from Abroad`, `
+                        <p>How Shifara Health connects international patients with ${esc(d.name)}, ${esc(roleIn)}.</p>
+                        <div class="dt-steps">${steps.map(([t, p], i) => `
+                            <div class="dt-step"><span>${String(i + 1).padStart(2, '0')}</span>
+                                <div><b>${esc(t)}</b><p>${esc(p)}</p></div></div>`).join('')}
+                        </div>`, 'Consult from abroad'],
+            ...(treatments.length ? [['Treatment Costs in India', `
+                        <p>Indicative package costs in India at Shifara partner hospitals. Your written estimate depends on your reports.</p>
+                        <div class="dt-cost">
+                            <table>
+                                <thead><tr><th>Treatment</th><th>Indicative cost (USD)</th></tr></thead>
+                                <tbody>${treatments.map(t => `
+                                    <tr><td><a href="${link.treatment(t.id)}">${esc(t.name)}</a></td><td>${esc(t.cost)}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>`, 'Costs']] : []),
+            [`FAQs about ${d.name}`, faqs.map(([q, a]) => `
+                        <details class="dt-faq">
+                            <summary>${esc(q)}</summary>
+                            <p>${a}</p>
+                        </details>`).join(''), 'FAQs'],
+        ];
+
+        const crumbs = [['Doctors', listUrl('doctors')], ...(dept ? [[deptBy[dept]?.noun + ' doctors', listUrl('doctors', { department: dept })]] : [])];
+        const org = { '@type': 'Organization', '@id': SITE + '/#organization', name: 'Shifara Health', url: SITE + '/', logo: SITE + '/assets/images/logo/shifara-logo.png' };
+        const head = `    <meta name="author" content="Shifara Health">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="${canonical}">
+    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="Shifara Health">
+    <meta property="og:locale" content="en_IN">
+    <meta property="og:title" content="${esc(title)}">
+    <meta property="og:description" content="${esc(description)}">
+    <meta property="og:url" content="${canonical}">
+    <meta property="og:image" content="${esc(SITE + encodeURI(d.image || '/assets/images/logo/shifara-logo.png'))}">
+    <meta name="twitter:card" content="summary">
+    ${jsonLd({
+        '@context': 'https://schema.org',
+        '@graph': [
+            {
+                '@type': 'WebPage', '@id': url + '#webpage', url, name: title, description, inLanguage: 'en-IN',
+                about: { '@id': url + '#physician' }, breadcrumb: { '@id': url + '#breadcrumb' },
+                ...(d.image ? { primaryImageOfPage: SITE + encodeURI(d.image) } : {}),
+                author: { '@id': org['@id'] }, publisher: { '@id': org['@id'] },
+            },
+            org,
+            {
+                '@type': 'Physician', '@id': url + '#physician', name: d.name, url, description,
+                ...(d.image ? { image: SITE + encodeURI(d.image) } : {}),
+                medicalSpecialty: [...new Set(depts.map(s => SPECIALTY[s]).filter(Boolean))].map(s => 'https://schema.org/' + s),
+                ...(expertise.length ? { knowsAbout: expertise } : {}),
+                ...(h ? { hospitalAffiliation: { '@type': 'Hospital', name: h.name, url: SITE + link.hospital(h.id) } } : {}),
+                address: { '@type': 'PostalAddress', addressLocality: city, addressCountry: 'IN' },
+            },
+            {
+                '@type': 'BreadcrumbList', '@id': url + '#breadcrumb',
+                itemListElement: [['Home', '/'], ...crumbs, [d.name, `/doctor/${d.id}/`]].map(([name, p], i) =>
+                    ({ '@type': 'ListItem', position: i + 1, name, item: SITE + p })),
+            },
+            {
+                '@type': 'FAQPage',
+                mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: strip(a) } })),
+            },
+        ],
+    })}
+`;
 
         const main = `
         <section class="dt-hero">
             <div class="container">
-                ${crumb([['Doctors', listUrl('doctors')], ...(dept ? [[deptBy[dept]?.noun + ' doctors', listUrl('doctors', { department: dept })]] : []), [d.name]])}
+                ${crumb([...crumbs, [d.name]])}
                 <div class="dt-head dt-head-doc">
                     <div class="dt-photo">${photo}</div>
                     <div class="min-w-0">
-                        <span class="lc-spec">${esc(d.speciality || 'Specialist')}</span>
-                        <h1>${esc(d.name)}</h1>
+                        <h1>${esc(d.name)} <span class="dt-h1-role">${esc(roleIn)}</span></h1>
                         <p class="dt-desig">${esc(d.designation)}</p>
                         <div class="dt-facts">
                             ${d.experience ? `<span>${svg('clock')}${d.experience}+ years experience</span>` : ''}
                             ${h ? `<a href="${link.hospital(h.id)}">${svg('home')}${esc(d.hospital)}</a>` : `<span>${svg('home')}${esc(d.hospital)}</span>`}
-                            <span>${svg('pin')}${esc(cityName(d.city))}</span>
+                            <span>${svg('pin')}${esc(city)}, India</span>
                             ${x.fee ? `<span class="dt-fee">${svg('video')}Video consultation: ${esc(x.fee)}</span>` : ''}
                         </div>
                     </div>
@@ -257,30 +537,34 @@ module.exports = function templates(UI) {
                 </div>
             </div>
         </section>
-        ${subnav(tabs.map(t => t.title))}
+        ${subnav([...tabs.map(t => [t.nav, t.title]), ...extra.map(([t, , label]) => [label, t])])}
         <div class="container dt-body">
             <div class="row g-4 g-xl-5">
                 <div class="col-lg-8">
-                    ${tabSections(tabs) || section('About the Doctor', `\n                        <p>${esc(d.designation)}</p>`)}
+                    ${tabSections(tabs) || section(`About ${d.name}`, `\n                        <p>${esc(d.designation)}</p>`)}${extra.map(([t, inner]) => section(t, inner)).join('')}
                 </div>
                 <div class="col-lg-4">
                     <aside class="dt-side">${h ? `
                         <a class="dt-hosp" href="${link.hospital(h.id)}">
                             <span class="dt-hosp-logo">${logo(h, '')}</span>
-                            <span class="min-w-0"><small>Practises at</small><b>${esc(h.name)}</b><span>${esc(h.address || cityName(h.city))}</span></span>
+                            <span class="min-w-0"><small>Practises at</small><b>${esc(h.name)}</b><span>${esc(h.address || city)}</span></span>
                             ${svg('arrow', 'i')}
-                        </a>` : ''}${quoteBox(d.name)}
+                        </a>` : ''}
+                        <div class="dt-glance">
+                            <h3>At a glance</h3>
+                            <div><small>Speciality</small><b>${esc(role)}</b></div>
+                            ${d.experience ? `<div><small>Experience</small><b>${d.experience}+ years</b></div>` : ''}
+                            <div><small>Hospital</small>${h ? `<a href="${link.hospital(h.id)}">${esc(h.name)}</a>` : `<b>${esc(d.hospital)}</b>`}</div>
+                            <div><small>City</small><b>${esc(city)}, India</b></div>
+                            ${x.fee ? `<div><small>Video consultation</small><b>${esc(x.fee)}</b></div>` : ''}
+                        </div>${quoteBox(d.name)}
                     </aside>
                 </div>
             </div>
-            ${related(`More ${deptBy[dept]?.noun || ''} specialists`, top(peers, 3, byExperience).map(doctorCard), listUrl('doctors', { department: dept }), 'View all')}
+            ${related(sameRole.length ? `More ${role}s in India` : `More ${deptBy[dept]?.noun || ''} specialists in India`, peers.map(doctorCard), listUrl('doctors', { department: peerDept }), 'View all')}
             ${ctaBand('Want a second opinion first?', 'Share your reports and get a free opinion from a senior specialist before you travel.', d.name)}
         </div>`;
-        return {
-            title: `${d.name}, ${d.speciality}`,
-            description: clip(firstText(tabs) || `${d.name}: ${d.designation} at ${d.hospital}, ${cityName(d.city)}.`),
-            main,
-        };
+        return { title, description, main, head };
     }
 
     // ---------- Treatment ----------
