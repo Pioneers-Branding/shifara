@@ -347,3 +347,18 @@ const io = new IntersectionObserver(entries => entries.forEach(en => {
     io.unobserve(en.target);
 }), { threshold: .12 });
 document.querySelectorAll('.rv, #compare').forEach(el => io.observe(el));
+
+// Doctor videos slider: arrows move one video; an arrow hides at the start / end of the row
+document.querySelectorAll('.vs').forEach(vs => {
+    const track = vs.querySelector('.vs-track'), prev = vs.querySelector('.vs-prev'), next = vs.querySelector('.vs-next');
+    const step = () => track.querySelector('.vs-item').getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0);
+    const update = () => {
+        prev.disabled = track.scrollLeft <= 2;
+        next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+    };
+    prev.addEventListener('click', () => track.scrollBy({ left: -step() }));
+    next.addEventListener('click', () => track.scrollBy({ left: step() }));
+    track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+});
