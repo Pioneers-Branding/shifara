@@ -2,6 +2,8 @@
 //
 //   node tools/build.js            build / update every page folder
 //   node tools/build.js --force    also overwrite pages you edited by hand
+//   node tools/build.js --only=doctor/dr-punit-singla/   write only the pages under that path (a preview);
+//                                  filter folders, the homepage and the sitemap are left as they are
 //
 // Output (one folder per URL, each with its own index.html you can edit directly):
 //   hospitals/  doctors/  treatments/            listing pages (filters run in assets/js/listing.js)
@@ -25,6 +27,9 @@ const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
 const FORCE = process.argv.includes('--force');
+const ONLY = (process.argv.find(a => a.startsWith('--only=')) || '').slice('--only='.length).replace(/^\//, '');
+// canonical, social and schema.org URLs are absolute; the page links themselves stay relative
+const SITE = (process.env.SITE_URL || 'https://shifarahealth.com').replace(/\/$/, '');
 const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8');
 
 // ---------- Data ----------
@@ -32,7 +37,7 @@ global.window = {};
 require(path.join(ROOT, 'assets/data/catalog.js'));
 require(path.join(ROOT, 'assets/js/cards.js'));
 const UI = window.ShifaraUI;
-const T = require('./detail-templates.js')(UI);
+const T = require('./detail-templates.js')(UI, SITE);
 const { D, esc } = UI;
 
 function detailData(kind, id) {
@@ -69,12 +74,14 @@ const homeOnly = s => s
 const HEAD = homeOnly(siteAnchors(home.slice(0, home.indexOf(HERO))));
 const FOOT = homeOnly(siteAnchors(home.slice(home.indexOf(FOOTER))));
 
-function layout({ title, description, css, js, main }) {
+// extraHead: whole lines (canonical, social and schema.org tags) placed just before </head>
+function layout({ title, description, css, js, main, extraHead = '' }) {
     let head = HEAD
         .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)} | Shifara Health</title>`)
         .replace(/<meta name="description"\s+content="[^"]*">/, `<meta name="description" content="${esc(description)}">`)
         .replace(/(<link rel="stylesheet" href="\/assets\/css\/style.css">)/,
-            '$1' + css.map(c => `\n    <link rel="stylesheet" href="/assets/css/${c}">`).join(''));
+            '$1' + css.map(c => `\n    <link rel="stylesheet" href="/assets/css/${c}">`).join(''))
+        .replace('</head>', extraHead + '</head>');
     const foot = FOOT.replace(/(    <script src="\/assets\/js\/main.js"><\/script>\n)/,
         '$1' + js.map(j => `    <script src="${j}"></script>\n`).join(''));
     if (!js.every(j => foot.includes(j)) || !css.every(c => head.includes(c))) {
@@ -109,6 +116,7 @@ function collectListings(html, rel) {
 // asIs: save the links exactly as given (already relative, or site-root on purpose)
 function write(rel, html, { asIs = false } = {}) {
     collectListings(html, rel);
+    if (ONLY && !rel.startsWith(ONLY)) return;
     // marker goes on its own line right after <!doctype html>; editors may switch the file to CRLF,
     // so the hash is taken over LF-normalised content
     const body = norm(asIs ? html : relative(html, rel)).replace(/^(<!doctype html>)\n?/i, '$1\n');
@@ -459,7 +467,7 @@ for (const [kind, dataKind, items] of DETAILS) {
 `;
         write(`${kind}/${item.id}/index.html`, layout({
             title: page.title, description: page.description, css: ['listing.css', 'detail.css'],
-            js: ['/assets/js/detail.js'], main,
+            js: ['/assets/js/detail.js'], main, extraHead: page.head,
         }));
     }
 }
@@ -468,7 +476,7 @@ for (const [kind, dataKind, items] of DETAILS) {
 {
     const raw = read('index.html');
     const fixed = relative(raw, 'index.html');
-    if (fixed !== raw) { fs.writeFileSync(path.join(ROOT, 'index.html'), fixed); console.log('index.html: site-root links made relative'); }
+    if (fixed !== raw && !ONLY) { fs.writeFileSync(path.join(ROOT, 'index.html'), fixed); console.log('index.html: site-root links made relative'); }
     collectListings(raw, 'index.html');
 }
 
@@ -486,7 +494,7 @@ for (const p of [...linkedListings].sort()) {
 }
 // remove generated filter folders nothing links to any more (hand-edited ones are kept)
 let removed = 0;
-for (const type of Object.keys(LISTINGS)) {
+for (const type of ONLY ? [] : Object.keys(LISTINGS)) {
     (function walk(dir) {
         for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
             if (!e.isDirectory()) continue;
@@ -533,7 +541,7 @@ write('404.html', layout({
 }).replace('<head>', '<head>\n    <meta name="robots" content="noindex">'), { asIs: true });
 
 // ---------- sitemap.xml + robots.txt (from the page folders now on disk) ----------
-require('./sitemap.js');
+if (!ONLY) require('./sitemap.js');
 
 console.log(`written: ${stats.written} | unchanged: ${stats.unchanged} | skipped (edited by hand): ${stats.skipped.length}`);
 if (stats.skipped.length) {

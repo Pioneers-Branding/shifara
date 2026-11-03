@@ -69,6 +69,16 @@
     margin: 0 0 8px
 }
 
+/* doctor role under the name, inside the H1 ("Liver Transplant Surgeon in India") */
+.dt-h1-role {
+    display: block;
+    margin-top: 6px;
+    font-size: clamp(15px, 1.5vw, 19px);
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--coral)
+}
+
 .dt-loc,
 .dt-desig {
     display: flex;
@@ -593,6 +603,61 @@
     color: var(--slate) !important
 }
 
+.dt-cost td a {
+    color: var(--navy);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--teal);
+    text-underline-offset: 3px
+}
+
+/* ---------- FAQ ---------- */
+.dt-faq {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    margin-bottom: 10px
+}
+
+.dt-faq summary {
+    position: relative;
+    cursor: pointer;
+    list-style: none;
+    padding: 15px 48px 15px 18px;
+    font-weight: 700;
+    color: var(--navy)
+}
+
+.dt-faq summary::-webkit-details-marker {
+    display: none
+}
+
+.dt-faq summary::after {
+    content: '+';
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--teal-d)
+}
+
+.dt-faq[open] summary::after {
+    content: '\2212'
+}
+
+.dt-sec .dt-faq p {
+    margin: 0;
+    padding: 0 18px 16px;
+    color: var(--slate)
+}
+
+.dt-faq p a {
+    color: var(--teal-d);
+    font-weight: 600
+}
+
 /* ---------- Sidebar ---------- */
 .dt-side {
     position: sticky;
@@ -842,7 +907,7 @@
         display: none
     }
 
-    /* doctor: photo beside the speciality and name, details full width below (no empty space next to the photo) */
+    /* doctor: photo beside the name and role, details full width below (no empty space next to the photo) */
     .dt-head-doc {
         display: grid;
         grid-template-columns: 92px minmax(0, 1fr);
@@ -855,20 +920,15 @@
     }
 
     .dt-head-doc .dt-photo {
-        grid-row: 1 / span 2;
+        grid-row: 1;
         width: 92px;
         height: 92px;
         border-radius: 20px
     }
 
-    .dt-head-doc .lc-spec {
-        grid-column: 2;
-        align-self: end
-    }
-
     .dt-head-doc h1 {
         grid-column: 2;
-        align-self: start;
+        align-self: center;
         margin: 0
     }
 
