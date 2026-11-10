@@ -159,6 +159,10 @@ module.exports = function templates(UI, SITE) {
     }
 
     // every quote / consultation button opens the booking page, telling it what the enquiry is about
+    // patient's country (same list as the Book consultation form); main.js fills the phone code from it
+    const COUNTRIES = ['Bangladesh', 'Iraq', 'Iran', 'Saudi Arabia', 'Yemen', 'Oman', 'Nigeria', 'Kenya', 'Ethiopia', 'Tanzania', 'Uganda',
+        'Ghana', 'Sudan', 'South Sudan', 'Somalia', 'Rwanda', 'Zambia', 'Zimbabwe', 'Cameroon', 'DR Congo', 'Mozambique', 'Malawi', 'Egypt', 'Other'];
+    const countrySelect = () => `<select class="form-select" name="country" required aria-label="Country"><option value="">Your country</option>${COUNTRIES.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
     const bookUrl = subject => '/book-consultation/' + (subject ? '?for=' + encodeURIComponent(subject) : '');
 
     function quoteBox(subject, id = 'dtQuote', shown = subject) {
@@ -171,6 +175,7 @@ module.exports = function templates(UI, SITE) {
                             <p class="dt-quote-sub">for ${esc(shown)}</p>
                             <div class="d-grid gap-2">
                                 <input class="form-control" name="name" required placeholder="Full name" aria-label="Full name">
+                                ${countrySelect()}
                                 <input class="form-control" name="phone" type="tel" required placeholder="WhatsApp / phone with country code" aria-label="Phone">
                                 <input class="form-control" name="email" type="email" required placeholder="Email address" aria-label="Email">
                                 <textarea class="form-control" name="message" rows="2" placeholder="Briefly describe the condition (optional)" aria-label="Message"></textarea>${consent(id)}
@@ -799,6 +804,7 @@ module.exports = function templates(UI, SITE) {
                                 <p class="dt-quote-sub">Upfront cost estimate &amp; specialist options for your treatment</p>
                                 <div class="d-grid gap-2">
                                     <input class="form-control" name="name" type="text" required placeholder="Full name" aria-label="Full name">
+                                    ${countrySelect()}
                                     <input class="form-control" name="phone" type="tel" required placeholder="WhatsApp / phone with country code" aria-label="Phone">
                                     <input class="form-control" name="email" type="email" required placeholder="Email address" aria-label="Email">
                                     <textarea class="form-control" name="message" rows="2" placeholder="Briefly describe condition or treatment required" aria-label="Message"></textarea>${consent('dtQuote')}
