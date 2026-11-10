@@ -10,6 +10,7 @@
 //   hospital/<id>/  doctor/<id>/  treatment/<id>/ detail pages (full content in the HTML)
 //   privacy-policy/  medical-disclaimer/           legal pages (content in tools/pages/<slug>.html)
 //   services/<slug>/                              service pages (content in tools/services.js)
+//   blog/  blog/<slug>/                           blog listing and posts (one file per post in tools/blog/<slug>.html)
 //   about-us/  concierge/  country-comparison/  partner-with-us/  book-consultation/   company pages (content in tools/pages/<slug>.html)
 //   hospitals/cardiology/delhi/ …                 a listing page with its own title and results for every filter URL some page links to
 //   404.html                                      not-found page; sends unknown filter URLs on to the listing page
@@ -37,7 +38,15 @@ global.window = {};
 require(path.join(ROOT, 'assets/data/catalog.js'));
 require(path.join(ROOT, 'assets/js/cards.js'));
 const UI = window.ShifaraUI;
-const T = require('./detail-templates.js')(UI, SITE);
+// Blog posts: one file per post in tools/blog/<slug>.html. A post starts with a comment holding its details as JSON
+// (title, description, excerpt, category, date as YYYY-MM-DD, image, imageAlt, treatments as a list of treatment ids).
+const POSTS = fs.readdirSync(path.join(ROOT, 'tools/blog')).filter(f => f.endsWith('.html')).map(f => {
+    const raw = read(`tools/blog/${f}`).replace(/\r\n/g, '\n');
+    const m = raw.match(/^<!--\s*(\{[\s\S]*?\})\s*-->\n?/);
+    if (!m) throw new Error(`tools/blog/${f}: a post must start with a <!-- { details } --> comment`);
+    return { slug: f.slice(0, -5), ...JSON.parse(m[1]), body: raw.slice(m[0].length).trim() };
+}).sort((a, b) => b.date.localeCompare(a.date));
+const T = require('./detail-templates.js')(UI, SITE, detailData, POSTS);
 const { D, esc } = UI;
 
 function detailData(kind, id) {
@@ -498,6 +507,105 @@ ${body.trim().split('\n').map(l => l ? '        ' + l : l).join('\n')}
     const seo = c.noindex ? '' : simpleSeo(`/${slug}/`, title, c.desc, c.name);
     const html = layout({ title, description: c.desc, css: ['listing.css', 'service.css'], js: [], main, extraHead: seo });
     write(`${slug}/index.html`, c.noindex ? html.replace('<head>', '<head>\n    <meta name="robots" content="noindex">') : html, { seo });
+}
+
+// ---------- Blog (posts in tools/blog/<slug>.html) ----------
+const postDate = d => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const postCard = p => `                    <div class="col"><a href="/blog/${p.slug}/" class="post post-lg">
+                        <div class="cover"><img src="${esc(p.image)}" alt="${esc(p.imageAlt)}" loading="lazy"></div>
+                        <div class="body">
+                            <div class="meta">${postDate(p.date)}<i></i>${esc(p.category)}</div>
+                            <h3>${esc(p.title)}</h3>
+                            <p>${esc(p.excerpt)}</p>
+                            <span class="more">Read the guide <svg class="i" style="width:16px"><use href="#arrow" /></svg></span>
+                        </div>
+                    </a></div>`;
+const BLOG = {
+    title: 'Health Blog: Guides for Medical Treatment in India',
+    h1: 'Health Blog: Guides for Treatment in India',
+    desc: 'Practical guides for international patients on treatment costs, hospitals, medical visas and recovery in India, from the Shifara Health team.',
+    lead: 'Practical guides on treatments, costs, visas and recovery, written for international patients and their families.',
+};
+{
+    const url = `${SITE}/blog/`;
+    const extraHead = T.seoHead({
+        url, title: BLOG.title, description: BLOG.desc, pageType: 'CollectionPage', crumbs: [['Home', '/'], ['Blog', '/blog/']],
+        nodes: [{
+            '@type': 'ItemList', '@id': url + '#posts', numberOfItems: POSTS.length,
+            itemListElement: POSTS.map((p, i) => ({ '@type': 'ListItem', position: i + 1, name: p.title, url: `${url}${p.slug}/` })),
+        }],
+    });
+    const main = `    <!-- ================= BLOG ================= -->
+    <main>
+        <section class="lp-hero lp-hero-page">
+            <div class="container">
+                <nav class="lp-crumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>Blog</span></nav>
+                <h1>${esc(BLOG.h1)}</h1>
+                <p>${esc(BLOG.lead)}</p>
+            </div>
+        </section>
+        <section class="sec blog-sec">
+            <div class="container">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 g-lg-4">
+${POSTS.map(postCard).join('\n')}
+                </div>
+            </div>
+        </section>
+    </main>
+`;
+    write('blog/index.html', layout({ title: BLOG.title, description: BLOG.desc, css: ['listing.css'], js: [], main, extraHead }));
+}
+for (const p of POSTS) {
+    const url = `${SITE}/blog/${p.slug}/`;
+    const related = (p.treatments || []).map(id => UI.treatBy[id]).filter(Boolean);
+    const more = POSTS.filter(o => o.slug !== p.slug).slice(0, 3);
+    const extraHead = T.seoHead({
+        url, title: p.title, description: p.description, ogType: 'article', image: p.image, aboutId: url + '#article',
+        crumbs: [['Home', '/'], ['Blog', '/blog/'], [p.title, `/blog/${p.slug}/`]],
+        nodes: [{
+            '@type': 'BlogPosting', '@id': url + '#article', headline: p.title, description: p.description, image: SITE + encodeURI(p.image), url,
+            datePublished: p.date, dateModified: p.updated || p.date, inLanguage: 'en-IN',
+            author: { '@id': SITE + '/#organization' }, publisher: { '@id': SITE + '/#organization' }, mainEntityOfPage: { '@id': url + '#webpage' },
+        }],
+    });
+    const main = `    <!-- ================= BLOG POST: ${p.slug} ================= -->
+    <main>
+        <section class="lp-hero lp-hero-page">
+            <div class="container">
+                <nav class="lp-crumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/blog/">Blog</a><span>/</span><span>${esc(p.category)}</span></nav>
+                <h1>${esc(p.title)}</h1>
+                <p>By the Shifara Health Editorial Team · ${postDate(p.date)}</p>
+            </div>
+        </section>
+        <div class="container">
+            <article class="legal">
+                <img src="${esc(p.image)}" alt="${esc(p.imageAlt)}" class="img-fluid rounded-4 mb-4" fetchpriority="high">
+${p.body.split('\n').map(l => l ? '                ' + l : l).join('\n')}${related.length ? `
+                <h2>Related treatments in India</h2>
+                <ul>
+${related.map(t => `                    <li><a href="/treatment/${t.id}/">${esc(t.name)} in India</a></li>`).join('\n')}
+                </ul>` : ''}${more.length ? `
+                <h2>More guides for patients</h2>
+                <ul>
+${more.map(o => `                    <li><a href="/blog/${o.slug}/">${esc(o.title)}</a></li>`).join('\n')}
+                </ul>` : ''}
+                <p class="legal-note">This guide is general information, not medical advice, and costs are indicative. Please read our <a href="/medical-disclaimer/">medical disclaimer</a> and speak to your doctor about your own case.</p>
+            </article>
+        </div>
+        <section class="pb-5">
+            <div class="container">
+                <div class="lp-cta d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div>
+                        <h2>Talk to a Shifara case manager</h2>
+                        <p>Share your reports and get a treatment plan and written cost estimate, free.</p>
+                    </div>
+                    <a href="/book-consultation/?for=${encodeURIComponent(p.title)}" class="btn btn-coral flex-none">Get free quote</a>
+                </div>
+            </div>
+        </section>
+    </main>
+`;
+    write(`blog/${p.slug}/index.html`, layout({ title: p.title, description: p.description, css: ['listing.css'], js: [], main, extraHead }));
 }
 
 // ---------- Detail pages ----------

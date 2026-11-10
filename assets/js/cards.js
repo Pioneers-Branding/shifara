@@ -136,7 +136,7 @@ window.ShifaraUI = (() => {
                 <h3><a href="${url}">${esc(t.name)}</a></h3>
                 ${startingPrice(t.cost) ? `<p class="lc-price">Starting from <b>${esc(startingPrice(t.cost))}</b></p>` : ''}
                 <div class="lc-actions">
-                    <a href="${url}" class="btn btn-ghost">Read more</a>
+                    <a href="${url}" class="btn btn-ghost">Cost &amp; details</a>
                     <a href="${listUrl('hospitals', { treatment: t.id })}" class="btn btn-coral">Find hospitals</a>
                 </div>
             </div>

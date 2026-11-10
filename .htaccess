@@ -19,6 +19,12 @@ Options -Indexes
     RewriteCond %{DOCUMENT_ROOT}%1%2/%3/index.html -f
     RewriteRule ^ %1%2/%3/ [R=301,L]
 
+    # Old WordPress blog posts
+    RewriteCond %{REQUEST_URI} ^(.*/)treatment-guide-for-nigerian-patients/?$
+    RewriteRule ^ %1blog/treatment-guide-for-nigerian-patients/ [R=301,L]
+    RewriteCond %{REQUEST_URI} ^(.*/)7-reasons-why-you-shouldnt-ignore-knee-pain/?$
+    RewriteRule ^ %1treatment/total-knee-replacement/ [R=301,L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} ^(.*/)(hospitals|doctors|treatments)/(.+)$

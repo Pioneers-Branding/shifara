@@ -1,5 +1,7 @@
 # Old WordPress detail URLs (/doctors/<id>/, /hospitals/<id>/, /treatments/<id>/) moved to /doctor/<id>/ …
 # Listed one by one because a /doctors/:id rule would also catch filter URLs such as /doctors/delhi/.
+/treatment-guide-for-nigerian-patients/  /blog/treatment-guide-for-nigerian-patients/  301
+/7-reasons-why-you-shouldnt-ignore-knee-pain/  /treatment/total-knee-replacement/  301
 /doctors/dr-brig-s-v-kotwal/  /doctor/dr-brig-s-v-kotwal/  301
 /doctors/dr-brig-anil-kheterpal/  /doctor/dr-brig-anil-kheterpal/  301
 /doctors/dr-col-anil-dhall/  /doctor/dr-col-anil-dhall/  301

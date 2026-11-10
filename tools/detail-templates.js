@@ -1,7 +1,7 @@
 // Shifara Health - HTML templates for the generated detail pages (used by tools/build.js only).
 // Each function returns { title, description, main } for one hospital, doctor or treatment, plus { head } (canonical,
 // social and schema.org tags, with absolute URLs on SITE) where the page has one.
-module.exports = function templates(UI, SITE) {
+module.exports = function templates(UI, SITE, detailData, POSTS) {
     const { D, HOME, esc, svg, deptName, cityName, deptBy, hospBy, treatBy, link, listUrl, wa, startingPrice, initials, logo,
         hospitalCard, doctorCard, treatmentCard, hospitalLabel, searchTerm, searchDoctors, listingTitle } = UI;
 
@@ -17,7 +17,8 @@ module.exports = function templates(UI, SITE) {
     // JSON-LD inside <script>: "</" must not close the tag
     const jsonLd = data => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
 
-    const ORG = { '@type': 'Organization', '@id': SITE + '/#organization', name: 'Shifara Health', url: SITE + '/', logo: SITE + '/assets/images/logo/shifara-logo.png' };
+    const ORG = { '@type': 'Organization', '@id': SITE + '/#organization', name: 'Shifara Health', url: SITE + '/', logo: SITE + '/assets/images/logo/shifara-logo.png', telephone: '+91-99713-16164', email: 'mail@shifarahealth.com',
+        sameAs: ['https://www.facebook.com/people/Shifara-Health/61591410937126/', 'https://www.instagram.com/shifarahealth_/', 'https://www.linkedin.com/company/shifarahealth/', 'https://www.youtube.com/channel/UCIlfjKs6gzZnWdWGmFoh66A', 'https://x.com/shifarahealth'] };
     // Author, robots, canonical, social and schema.org tags for one page.
     // url and canonical are absolute; crumbs are [name, site-root path]; nodes go in the schema.org graph after the Organization.
     function seoHead({ url, canonical = url, title, description, ogType = 'website', pageType = 'WebPage', image, aboutId, crumbs, nodes = [], faqs = [] }) {
@@ -98,6 +99,43 @@ module.exports = function templates(UI, SITE) {
             '</nav>';
     }
 
+    // ---------- In-text links ----------
+    // The first mention of a treatment, specialist or service in a page's own text links to that page, with those words as the anchor.
+    const tr = link.treatment, hub = (type, department) => listUrl(type, { department });
+    const TEXT_LINKS = [
+        ['total knee replacement( surgery)?|knee replacement( surgery)?', tr('total-knee-replacement')], ['hip replacement( surgery)?', tr('hip-replacement')],
+        ['coronary artery bypass( surgery| grafting)?|heart bypass( surgery)?|bypass surgery|CABG', tr('coronary-artery-bypass-cabg')],
+        ['heart valve replacement|valve replacement', tr('heart-valve-replacement-avr-mvr')], ['heart transplant(ation)?', tr('heart-transplant')],
+        ['kidney transplant(ation)?|renal transplant(ation)?', tr('kidney-transplant')], ['liver transplant(ation)?', tr('liver-transplant')],
+        ['bone marrow transplant(ation)?', tr('adult-bone-marrow-transplant')], ['angioplasty', tr('angioplasty-stent')], ['pacemakers?', tr('pacemaker-surgery')],
+        ['TAVI( procedure)?', tr('tavi-procedure')], ['TAVR( procedure)?', tr('tavr-procedure-2')], ['IVF|in vitro fertili[sz]ation', tr('in-vitro-fertilisation')],
+        ['laparoscopic hysterectomy', tr('laparoscopic-hysterectomy')], ['hysterectomy', tr('hysterectomy')], ['myomectomy', tr('myomectomy')],
+        ['scoliosis( surgery)?', tr('scoliosis-surgery')], ['spinal fusion', tr('decompression-fusion')], ['micro-?discectomy', tr('lumbar-microdiscectomy')],
+        ['hair transplant(ation)?', tr('hair-transplant')], ['liposuction', tr('liposuction')], ['tummy tuck', tr('tummy-tuck')], ['abdominoplasty', tr('abdominoplasty')],
+        ['deep brain stimulation', tr('deep-brain-stimulation-dbs')], ['gamma knife( radiosurgery)?', tr('gamma-knife-radiosurgery')], ['cyber ?knife', tr('cyberknife-surgery')],
+        ['epilepsy surgery', tr('epilepsy-surgery')], ['PCNL', tr('pcnl-procedure')], ['RIRS', tr('rirs-stenting')], ['TURP', tr('turp')], ['urethroplasty', tr('urethroplasty')],
+        ['CAR-T( cell therapy)?', tr('car-t-cell-therapy')], ['proton therapy', tr('proton-therapy')], ['HIPEC', tr('hipec')],
+        ['orthopa?edic surgeons?', hub('doctors', 'orthopedics')], ['neurosurgeons?|neurologists?', hub('doctors', 'neurology')],
+        ['cardiac surgeons?|heart surgeons?|cardiologists?', hub('doctors', 'cardiology')], ['oncologists?', hub('doctors', 'oncology')], ['urologists?', hub('doctors', 'urology')],
+        ['gynaecologists?', hub('doctors', 'gynecology')], ['nephrologists?', hub('doctors', 'nephrology')], ['gastroenterologists?', hub('doctors', 'gastroenterology')],
+        ['spine surgeons?', hub('doctors', 'spine-surgery')], ['plastic surgeons?', hub('doctors', 'cosmetic')],
+        ['cardiac cent(re|er)s?', hub('hospitals', 'cardiology')], ['orthopa?edic cent(re|er)s?', hub('hospitals', 'orthopedics')], ['cancer (care|cent(re|er)s?|hospitals?)', hub('hospitals', 'oncology')],
+        ['e-medical visa|medical visa', '/travel-visa/'], ['air ambulance', '/services/air-ambulance/'], ['video consultations?', '/services/video-consultation/'],
+        ['step-down care', '/services/step-down-care/'], ['medical tourism', '/services/medical-tourism/'],
+    ].map(([words, href]) => ({ whole: new RegExp('^(?:' + words + ')$', 'i'), words, href }));
+    const TEXT_LINK_WORDS = new RegExp('(?<![A-Za-z0-9_-])(?:' + TEXT_LINKS.map(o => o.words).sort((a, b) => b.length - a.length).join('|') + ')(?![A-Za-z0-9_-])', 'gi');
+    let inText = s => s;
+    // call at the start of a page: up to 5 links, one per target, none to the page itself
+    function startTextLinks(self) {
+        const used = new Set([self]);
+        inText = s => s.replace(TEXT_LINK_WORDS, m => {
+            const target = TEXT_LINKS.find(o => o.whole.test(m));
+            if (!target || used.has(target.href) || used.size > 5) return m;
+            used.add(target.href);
+            return `<a href="${target.href}">${m}</a>`;
+        });
+    }
+
     function blocksHtml(blocks) {
         let out = '', list = [];
         const flush = () => {
@@ -106,10 +144,10 @@ module.exports = function templates(UI, SITE) {
         };
         for (const b of blocks) {
             if (b.t === 'li') {
-                list.push(`                            <li>${svg('check')}<span>${b.lead ? `<b>${esc(b.lead)}</b> ` : ''}${esc(b.text)}</span></li>`);
+                list.push(`                            <li>${svg('check')}<span>${b.lead ? `<b>${esc(b.lead)}</b> ` : ''}${inText(esc(b.text))}</span></li>`);
             } else {
                 flush();
-                out += b.t === 'h' ? `\n                        <h3 class="dt-h3">${esc(b.text)}</h3>` : `\n                        <p>${esc(b.text)}</p>`;
+                out += b.t === 'h' ? `\n                        <h3 class="dt-h3">${esc(b.text)}</h3>` : `\n                        <p>${inText(esc(b.text))}</p>`;
             }
         }
         flush();
@@ -123,7 +161,7 @@ module.exports = function templates(UI, SITE) {
         return blocksHtml(blocks.filter(b => b.t !== 'li')) + `
                         <div class="row row-cols-1 row-cols-md-2 g-3">${lis.map(b => `
                             <div class="col"><div class="dt-card"><span class="dt-card-ic">${svg('check')}</span>
-                                <div><b>${esc(b.lead)}</b><p>${esc(b.text)}</p></div></div></div>`).join('')}
+                                <div><b>${esc(b.lead)}</b><p>${inText(esc(b.text))}</p></div></div></div>`).join('')}
                         </div>`;
     }
 
@@ -226,6 +264,7 @@ module.exports = function templates(UI, SITE) {
     };
 
     function hospital(h, x) {
+        startTextLinks(link.hospital(h.id));
         // the hospital's name stays as it is; branches that share a name also carry their city or area
         const label = hospitalLabel(h);
         const nameIn = `${label}, India`;
@@ -331,6 +370,8 @@ module.exports = function templates(UI, SITE) {
                         <div class="row row-cols-1 row-cols-md-2 g-3" id="dtDocGrid">
                             ${docCards.join('\n                            ')}
                         </div>
+${docDepts.some(s => docs.filter(d => d.departments.includes(s)).length > 1) ? `
+                        <p class="mt-4 mb-0">Browse ${esc(label)} doctors by speciality: ${docDepts.filter(s => docs.filter(d => d.departments.includes(s)).length > 1).map(s => `<a href="${listUrl('doctors', { hospital: h.id, department: s })}">${esc(searchDoctors(s))}</a>`).join(', ')}.</p>` : ''}
                         <div class="text-center mt-4"><a id="dtDocAll" class="btn btn-ghost${docs.length <= 6 ? ' d-none' : ''}" href="${listUrl('doctors', { hospital: h.id })}"><span>View all ${docs.length} doctors</span> ${svg('arrow', 'i')}</a></div>`) : ''}${extra.map(([t, inner]) => section(t, inner)).join('')}
                 </div>
                 <div class="col-lg-4">
@@ -597,6 +638,7 @@ module.exports = function templates(UI, SITE) {
     }
 
     function doctor(d, x) {
+        startTextLinks(link.doctor(d.id));
         const h = d.hospitalId ? hospBy[d.hospitalId] : null;
         const dept = d.departments[0];
         const city = cityName(d.city);
@@ -745,14 +787,30 @@ module.exports = function templates(UI, SITE) {
                     </aside>
                 </div>
             </div>
-            ${related(sameRole.length ? `More ${role}s in India` : `More ${deptBy[dept]?.noun || ''} specialists in India`, peers.map(doctorCard), listUrl('doctors', { department: peerDept }), 'View all')}
+            ${related(sameRole.length ? `More ${role}s in India` : `More ${deptBy[dept]?.noun || ''} specialists in India`, peers.map(doctorCard), listUrl('doctors', { department: peerDept }), `All ${searchDoctors(peerDept)}`)}
             ${ctaBand('Want a second opinion first?', 'Share your reports and get a free opinion from a senior specialist before you travel.', d.name)}
         </div>`;
         return { title, description, main, head };
     }
 
     // ---------- Treatment ----------
+    // doctors whose profile names each treatment, most experienced first
+    let performers;
+    function doctorsFor(id) {
+        if (!performers) {
+            performers = {};
+            const seen = new Set();
+            for (const d of [...D.doctors].sort(byExperience)) {
+                if (seen.has(d.name + d.designation)) continue;
+                seen.add(d.name + d.designation);
+                for (const o of doctorTreatments(detailData('doctors', d.id), doctorRole(d))) (performers[o.t.id] = performers[o.t.id] || []).push(d);
+            }
+        }
+        return performers[id] || [];
+    }
+
     function treatment(t, x) {
+        startTextLinks(link.treatment(t.id));
         const dept = t.department;
         const cost = x.cost;
         const nameIn = `${t.name} in India`;
@@ -760,15 +818,17 @@ module.exports = function templates(UI, SITE) {
         const who = /surg|replacement|transplant|bypass|ectomy|plasty|arthroscop/i.test(t.name) ? 'Surgeons' : 'Doctors';
         const deptHospitals = D.hospitals.filter(h => h.departments.includes(dept));
         const hosps = top(deptHospitals, 3, byDoctors);
-        const docs = top(D.doctors.filter(d => d.departments.includes(dept)), 3, byExperience);
+        const named = doctorsFor(t.id);
+        const docs = [...named, ...top(D.doctors.filter(d => d.departments.includes(dept) && !named.includes(d)), 3, byExperience)].slice(0, 3);
         const others = D.treatments.filter(o => o.department === dept && o.id !== t.id).slice(0, 4);
+        const guides = POSTS.filter(p => (p.treatments || []).includes(t.id));
         const costlySiblings = D.treatments.filter(o => o.department === dept && o.id !== t.id && hasPrice(o)).slice(0, 8);
         const allHospitals = listUrl('hospitals', { treatment: t.id });
         const allDoctors = listUrl('doctors', { treatment: t.id });
         const faqs = [
             ...(hasPrice(t) ? [[`How much does ${t.name} cost in India?`, `The indicative package cost in India is ${esc(t.cost)}. Your written estimate depends on your reports, the hospital and your room category, and we share it free.`]] : []),
-            ...(hosps.length ? [['Which hospitals are best for this treatment in India?', `Shifara partner hospitals for this treatment include ${andList(hosps.map(hospitalLink))}. The right hospital depends on your diagnosis, so send your reports and we will compare up to 3 hospitals for you, free. <a href="${allHospitals}">Compare ${esc(t.name)} hospitals in India</a>.`]] : []),
-            ...(docs.length ? [['Who are the top doctors for this treatment in India?', `Senior specialists on our panel include ${andList(docs.map(doctorLink))}. <a href="${allDoctors}">See ${esc(t.name)} doctors in India</a>.`]] : []),
+            ...(hosps.length ? [['Which hospitals are best for this treatment in India?', `Shifara partner hospitals for this treatment include ${andList(hosps.map(hospitalLink))}. The right hospital depends on your diagnosis, so send your reports and we will compare up to 3 hospitals for you, free. <a href="${allHospitals}">Compare partner hospitals</a>.`]] : []),
+            ...(docs.length ? [['Who are the top doctors for this treatment in India?', `Senior specialists on our panel include ${andList((named.length > 3 ? named.slice(0, 6) : docs).map(doctorLink))}. <a href="${allDoctors}">See all doctors</a>.`]] : []),
             [`How can international patients plan this treatment in India?`, 'Send your medical reports to Shifara Health on WhatsApp or through the form on this page. A case manager replies within 24 hours, suggests suitable hospitals and specialists, and shares a written cost estimate. Our help is free for patients.'],
             ['Do I need a medical visa for treatment in India?', VISA_ANSWER],
         ];
@@ -846,7 +906,8 @@ module.exports = function templates(UI, SITE) {
                                 </tbody>
                             </table>
                         </div>${cost.note ? `
-                        <p class="dt-cost-note">${esc(cost.note)}</p>` : ''}
+                        <p class="dt-cost-note">${esc(cost.note)}</p>` : ''}${guides.length ? `
+                        <p class="mt-3 mb-0">Read our guide: ${guides.map(p => `<a href="/blog/${p.slug}/">${esc(p.title)}</a>`).join(', ')}.</p>` : ''}
                     </section>` : ''}${extra.map(([title, inner]) => section(title, inner)).join('')}
                 </div>
                 <div class="col-lg-4">
@@ -861,9 +922,9 @@ module.exports = function templates(UI, SITE) {
                     </aside>
                 </div>
             </div>
-            ${related(`Best Hospitals for ${nameIn}`, hosps.map(hospitalCard), allHospitals, 'All hospitals')}
-            ${related(`Top Doctors for ${nameIn}`, docs.map(doctorCard), allDoctors, 'All doctors')}
-            ${related(`Related ${noun} Treatments in India`, others.map(treatmentCard), listUrl('treatments', { department: dept }), 'View all', 'row-cols-1 row-cols-sm-2 row-cols-lg-4')}
+            ${related(`Best Hospitals for ${nameIn}`, hosps.map(hospitalCard), allHospitals, `All hospitals for ${t.name}`)}
+            ${related(`Top Doctors for ${nameIn}`, docs.map(doctorCard), allDoctors, `All doctors for ${t.name}`)}
+            ${related(`Related ${noun} Treatments in India`, others.map(treatmentCard), listUrl('treatments', { department: dept }), `All ${noun} treatments`, 'row-cols-1 row-cols-sm-2 row-cols-lg-4')}
             ${ctaBand(`Planning ${t.name} in India?`, 'Tell us about your condition and we will send a treatment plan and cost estimate within 48 hours, free.', t.name)}
         </div>`;
         // up to 53 characters: 70 with the brand suffix
@@ -931,7 +992,7 @@ module.exports = function templates(UI, SITE) {
             ...(type !== 'doctors' ? [[listUrl('doctors', filters), listingTitle('doctors', filters)]] : []),
             ...(type !== 'treatments' && D.treatments.some(o => o.department === dept) ? [[listUrl('treatments', { department: dept }), listingTitle('treatments', { department: dept })]] : []),
             ...(t ? [[link.treatment(t.id), `${t.name} in India`]] : []),
-        ] : [];
+        ] : !h ? ['hospitals', 'doctors', 'treatments'].filter(o => o !== type).map(o => [listUrl(o), listingTitle(o, {})]) : [];
         const alsoHtml = also.length ? `
                         <p>Related: ${andList(also.map(([href, text]) => `<a href="${href}">${esc(text)}</a>`))}.</p>` : '';
 
