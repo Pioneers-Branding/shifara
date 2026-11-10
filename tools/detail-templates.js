@@ -2,22 +2,95 @@
 // Each function returns { title, description, main } for one hospital, doctor or treatment, plus { head } (canonical,
 // social and schema.org tags, with absolute URLs on SITE) where the page has one.
 module.exports = function templates(UI, SITE) {
-    const { D, HOME, esc, svg, deptName, cityName, deptBy, hospBy, link, listUrl, wa, startingPrice, initials, logo,
-        hospitalCard, doctorCard, treatmentCard } = UI;
+    const { D, HOME, esc, svg, deptName, cityName, deptBy, hospBy, treatBy, link, listUrl, wa, startingPrice, initials, logo,
+        hospitalCard, doctorCard, treatmentCard, hospitalLabel, searchTerm, searchDoctors, listingTitle } = UI;
 
     // ---------- Shared pieces ----------
     const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const top = (list, n, sort) => [...list].sort(sort).slice(0, n);
     const byDoctors = (a, b) => b.doctors - a.doctors;
     const byExperience = (a, b) => (b.experience || 0) - (a.experience || 0);
-    const firstText = tabs => (tabs?.[0]?.blocks || []).find(b => b.t === 'p')?.text || '';
-    const clip = s => (s || '').replace(/\s+/g, ' ').trim().slice(0, 158);
     // first candidate that fits, else the last one cut at a word
     const fit = (max, ...options) => options.find(o => o.length <= max) ||
         options.at(-1).slice(0, max - 1).replace(/[\s,;:–-]+\S*$/, '') + '…';
     const strip = html => html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
     // JSON-LD inside <script>: "</" must not close the tag
     const jsonLd = data => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
+
+    const ORG = { '@type': 'Organization', '@id': SITE + '/#organization', name: 'Shifara Health', url: SITE + '/', logo: SITE + '/assets/images/logo/shifara-logo.png' };
+    // Author, robots, canonical, social and schema.org tags for one page.
+    // url and canonical are absolute; crumbs are [name, site-root path]; nodes go in the schema.org graph after the Organization.
+    function seoHead({ url, canonical = url, title, description, ogType = 'website', pageType = 'WebPage', image, aboutId, crumbs, nodes = [], faqs = [] }) {
+        return `    <meta name="author" content="Shifara Health">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="${canonical}">
+    <meta property="og:type" content="${ogType}">
+    <meta property="og:site_name" content="Shifara Health">
+    <meta property="og:locale" content="en_IN">
+    <meta property="og:title" content="${esc(title)}">
+    <meta property="og:description" content="${esc(description)}">
+    <meta property="og:url" content="${canonical}">
+    <meta property="og:image" content="${esc(SITE + encodeURI(image || '/assets/images/logo/shifara-logo.png'))}">
+    <meta name="twitter:card" content="summary">
+    ${jsonLd({
+        '@context': 'https://schema.org',
+        '@graph': [
+            {
+                '@type': pageType, '@id': url + '#webpage', url, name: title, description, inLanguage: 'en-IN',
+                ...(aboutId ? { about: { '@id': aboutId } } : {}), breadcrumb: { '@id': url + '#breadcrumb' },
+                ...(image ? { primaryImageOfPage: SITE + encodeURI(image) } : {}),
+                author: { '@id': ORG['@id'] }, publisher: { '@id': ORG['@id'] },
+            },
+            ORG,
+            ...nodes,
+            {
+                '@type': 'BreadcrumbList', '@id': url + '#breadcrumb',
+                itemListElement: crumbs.map(([name, p], i) => ({ '@type': 'ListItem', position: i + 1, name, item: SITE + p })),
+            },
+            ...(faqs.length ? [{
+                '@type': 'FAQPage',
+                mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: strip(a) } })),
+            }] : []),
+        ],
+    })}
+`;
+    }
+
+    // "a, b and c"
+    const andList = list => list.length < 2 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list.at(-1)}`;
+    const hospitalLink = h => `<a href="${link.hospital(h.id)}">${esc(hospitalLabel(h))}</a>`;
+    const doctorLink = d => `<a href="${link.doctor(d.id)}">${esc(d.name)}</a>`;
+    const hasPrice = t => !!startingPrice(t.cost);
+    const treatmentLink = t => `<a href="${link.treatment(t.id)}">${esc(t.name)}</a>`;
+    const VISA_ANSWER = `Most international patients travel on India's e-Medical Visa. Once the hospital confirms your treatment plan, we arrange the invitation letter and guide you through the application, free. Read our <a href="/travel-visa/">medical visa guide</a>.`;
+
+    function faqBlock(faqs) {
+        return faqs.map(([q, a]) => `
+                        <details class="dt-faq">
+                            <summary>${esc(q)}</summary>
+                            <p>${a}</p>
+                        </details>`).join('');
+    }
+
+    function stepsBlock(steps) {
+        return `
+                        <div class="dt-steps">${steps.map(([t, p], i) => `
+                            <div class="dt-step"><span>${String(i + 1).padStart(2, '0')}</span>
+                                <div><b>${esc(t)}</b><p>${esc(p)}</p></div></div>`).join('')}
+                        </div>`;
+    }
+
+    function costTable(treatments) {
+        return `
+                        <div class="dt-cost">
+                            <table>
+                                <thead><tr><th>Treatment</th><th>Indicative cost (USD)</th></tr></thead>
+                                <tbody>${treatments.map(t => `
+                                    <tr><td>${treatmentLink(t)}</td><td>${hasPrice(t) ? esc(t.cost) : 'On request'}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>`;
+    }
 
     function crumb(items) {
         return `<nav class="lp-crumb dt-crumb" aria-label="Breadcrumb"><a href="${HOME}">Home</a>` +
@@ -88,14 +161,14 @@ module.exports = function templates(UI, SITE) {
     // every quote / consultation button opens the booking page, telling it what the enquiry is about
     const bookUrl = subject => '/book-consultation/' + (subject ? '?for=' + encodeURIComponent(subject) : '');
 
-    function quoteBox(subject, id = 'dtQuote') {
+    function quoteBox(subject, id = 'dtQuote', shown = subject) {
         return `
                     <div class="dt-quote" id="${id}">
                         <form class="dt-quote-form" data-form="Quote box" accept-charset="UTF-8" action="https://app.formester.com/forms/HmhWy3jl2/submissions" method="POST">
                             <input type="hidden" name="subject" value="${esc(subject)}">
                             <span class="dt-quote-kicker">100% free · reply within 24 hrs</span>
                             <h3>Get a free quote</h3>
-                            <p class="dt-quote-sub">for ${esc(subject)}</p>
+                            <p class="dt-quote-sub">for ${esc(shown)}</p>
                             <div class="d-grid gap-2">
                                 <input class="form-control" name="name" required placeholder="Full name" aria-label="Full name">
                                 <input class="form-control" name="phone" type="tel" required placeholder="WhatsApp / phone with country code" aria-label="Phone">
@@ -139,13 +212,30 @@ module.exports = function templates(UI, SITE) {
     }
 
     // ---------- Hospital ----------
+    // section headings that carry the hospital's name, with the short label used in the "On this page" bar
+    const HOSPITAL_TABS = {
+        'About the Hospital': [n => `About ${n}`, 'About'],
+        'Key Highlights': [() => 'Key Highlights', 'Highlights'],
+        Specialities: [n => `Specialities at ${n}`, 'Specialities'],
+        'International Patient Services': [() => 'International Patient Services', 'International patients'],
+    };
+
     function hospital(h, x) {
-        const tabs = x.tabs || [];
+        // the hospital's name stays as it is; branches that share a name also carry their city or area
+        const label = hospitalLabel(h);
+        const nameIn = `${label}, India`;
+        const tabs = (x.tabs || []).map(t => {
+            const [heading, nav] = HOSPITAL_TABS[t.title] || [() => t.title, t.title];
+            return { ...t, title: heading(label), nav };
+        });
         const docs = D.doctors.filter(d => d.hospitalId === h.id).sort(byExperience);
         const docDepts = [...new Set(docs.flatMap(d => d.departments))];
-        const hasSpecialities = tabs.some(t => t.title === 'Specialities');
+        const hasSpecialities = (x.tabs || []).some(t => t.title === 'Specialities');
+        const specialitiesTitle = `Specialities at ${label}`;
+        const doctorsTitle = `Doctors at ${label}`;
+        const doctorsAnchor = `#sec-${slug(doctorsTitle)}`;
         const special = {
-            Specialities: blocks => {
+            [specialitiesTitle]: blocks => {
                 const heads = blocks.filter(b => b.t === 'h');
                 return heads.length ? `
                         <div class="dt-spec-grid">${heads.map(b => `
@@ -153,9 +243,8 @@ module.exports = function templates(UI, SITE) {
                         </div>` + blocksHtml(blocks.filter(b => b.t !== 'h')) : null;
             },
         };
-        const navTitles = [...tabs.map(t => t.title), ...(docs.length ? ['Doctors'] : [])];
-        const chip = (dept, label, n) =>
-            `<button type="button"${dept ? '' : ' class="on"'} data-d="${dept}" data-count="${n}" data-href="${listUrl('doctors', { hospital: h.id, department: dept })}">${esc(label)} (${n})</button>`;
+        const chip = (dept, text, n) =>
+            `<button type="button"${dept ? '' : ' class="on"'} data-d="${dept}" data-count="${n}" data-href="${listUrl('doctors', { hospital: h.id, department: dept })}">${esc(text)} (${n})</button>`;
         // every doctor is in the HTML; the department chips only show / hide them (assets/js/detail.js)
         const docCards = docs.map((d, i) => doctorCard(d).replace('<div class="col">',
             `<div class="col${i >= 6 ? ' d-none' : ''}" data-depts="${d.departments.join(' ')}">`));
@@ -164,12 +253,12 @@ module.exports = function templates(UI, SITE) {
                 <div class="dt-head">
                     <div class="dt-logo">${logo(h)}</div>
                     <div class="min-w-0">
-                        <h1>${esc(h.name)}</h1>
+                        <h1>${esc(nameIn)}</h1>
                         <p class="dt-loc">${svg('pin')}${esc(h.address || cityName(h.city))}</p>
                         <div class="dt-facts">
                             ${x.established ? `<span>${svg('clock')}Established ${esc(x.established)}</span>` : ''}
                             ${x.image ? '' : `<span>${svg('shield')}Accredited partner</span>`}
-                            ${docs.length ? `<a href="#sec-doctors">${svg('user')}${docs.length} doctors</a>` : ''}
+                            ${docs.length ? `<a href="${doctorsAnchor}">${svg('user')}${docs.length} doctors</a>` : ''}
                             <span>${svg('heart')}${h.departments.length} specialities</span>
                         </div>
                     </div>
@@ -177,8 +266,35 @@ module.exports = function templates(UI, SITE) {
                 <div class="dt-actions">
                     <a href="${esc(bookUrl(h.name))}" class="btn btn-coral">Get free quote ${svg('arrow', 'i')}</a>
                     <a href="${wa(`Hi Shifara, I want to know more about ${h.name}, ${cityName(h.city)}`)}" target="_blank" rel="noopener" class="btn btn-wa">${svg('wa', 'i')} Message us</a>
-                    ${docs.length ? '<a href="#sec-doctors" class="btn btn-ghost">View doctors</a>' : ''}
+                    ${docs.length ? `<a href="${doctorsAnchor}" class="btn btn-ghost">View doctors</a>` : ''}
                 </div>`;
+
+        // treatments of the departments where this hospital has doctors come first
+        const deptOrder = [...docDepts.filter(s => h.departments.includes(s)), ...h.departments.filter(s => !docDepts.includes(s))];
+        const treatments = deptOrder.flatMap(s => D.treatments.filter(t => t.department === s && hasPrice(t)).slice(0, 2)).slice(0, 10);
+        const steps = [
+            ['Share your reports', 'Send your reports and scans on WhatsApp or through the form on this page. A Shifara case manager replies within 24 hours.'],
+            ['Get a treatment plan and cost estimate', 'We share your case with the hospital and send you the treatment plan with a written cost estimate, free.'],
+            ['Medical visa and travel', 'We arrange the hospital invitation letter for your e-Medical Visa and guide you through the application, free. Your case manager stays with you from the airport to the day you fly home.'],
+            ['Treatment and follow-up', 'After treatment we schedule your follow-up consultations, including after you return home.'],
+        ];
+        const shownDepts = h.departments.slice(0, 8).map(s => `<a href="${listUrl('hospitals', { department: s })}">${esc(deptName(s))}</a>`);
+        const faqs = [
+            [`Where is ${label} in India?`, `${esc(h.name)} is at ${esc(h.address || cityName(h.city))}, India.`],
+            ...(docs.length ? [['How many doctors are listed at this hospital?', `Shifara Health lists ${docs.length} ${docs.length === 1 ? 'doctor' : 'doctors'} at this hospital, including ${andList(docs.slice(0, 3).map(doctorLink))}. <a href="${listUrl('doctors', { hospital: h.id })}">See the ${esc(label)} doctors list</a>.`]] : []),
+            ['Which specialities does this hospital offer?', `${andList(shownDepts)}${h.departments.length > shownDepts.length ? ', among others' : ''}.`],
+            ['How can international patients get a cost estimate?', 'Send your medical reports to Shifara Health on WhatsApp or through the form on this page. A case manager replies within 24 hours and shares a written cost estimate from the hospital. Our help is free for patients.'],
+            ['Do I need a medical visa for treatment in India?', VISA_ANSWER],
+        ];
+        // [section title, html, short label for the "On this page" bar]
+        const extra = [
+            ...(treatments.length ? [[`Treatments at ${label} in India`, `
+                        <p>Treatments in the departments at ${esc(h.name)}. Costs are indicative package prices in India at Shifara partner hospitals; your written estimate depends on your reports.</p>${costTable(treatments)}`, 'Treatments']] : []),
+            [`Get Treated at ${label} from Abroad`, `
+                        <p>How Shifara Health helps international patients get treated at ${esc(h.name)} in India.</p>${stepsBlock(steps)}`, 'From abroad'],
+            ['Frequently Asked Questions', faqBlock(faqs), 'FAQs'],
+        ];
+        const navTitles = [...tabs.map(t => [t.nav, t.title]), ...(docs.length ? [['Doctors', doctorsTitle]] : []), ...extra.map(([t, , nav]) => [nav, t])];
 
         const main = `
         <section class="dt-hero">
@@ -200,9 +316,9 @@ module.exports = function templates(UI, SITE) {
             <div class="row g-4 g-xl-5">
                 <div class="col-lg-8">
                     ${tabSections(tabs, special)}
-                    ${!hasSpecialities ? section('Specialities', `
-                        <div class="lc-tags dt-tags">${h.departments.map(s => `<a href="${listUrl('doctors', { hospital: h.id, department: s })}">${esc(deptName(s))}</a>`).join('')}</div>`) : ''}
-                    ${docs.length ? section('Doctors', `
+                    ${!hasSpecialities ? section(specialitiesTitle, `
+                        <div class="lc-tags dt-tags">${h.departments.map(s => `<a href="${docDepts.includes(s) ? listUrl('doctors', { hospital: h.id, department: s }) : listUrl('hospitals', { department: s })}">${esc(deptName(s))}</a>`).join('')}</div>`) : ''}
+                    ${docs.length ? section(doctorsTitle, `
                         <div class="dt-chips" id="dtDocChips">
                             ${chip('', 'All', docs.length)}
                             ${docDepts.map(s => chip(s, deptBy[s]?.noun || deptName(s), docs.filter(d => d.departments.includes(s)).length)).join('\n                            ')}
@@ -210,7 +326,7 @@ module.exports = function templates(UI, SITE) {
                         <div class="row row-cols-1 row-cols-md-2 g-3" id="dtDocGrid">
                             ${docCards.join('\n                            ')}
                         </div>
-                        <div class="text-center mt-4"><a id="dtDocAll" class="btn btn-ghost${docs.length <= 6 ? ' d-none' : ''}" href="${listUrl('doctors', { hospital: h.id })}"><span>View all ${docs.length} doctors</span> ${svg('arrow', 'i')}</a></div>`) : ''}
+                        <div class="text-center mt-4"><a id="dtDocAll" class="btn btn-ghost${docs.length <= 6 ? ' d-none' : ''}" href="${listUrl('doctors', { hospital: h.id })}"><span>View all ${docs.length} doctors</span> ${svg('arrow', 'i')}</a></div>`) : ''}${extra.map(([t, inner]) => section(t, inner)).join('')}
                 </div>
                 <div class="col-lg-4">
                     <aside class="dt-side">${quoteBox(h.name)}
@@ -220,11 +336,27 @@ module.exports = function templates(UI, SITE) {
             ${related(`Other hospitals in ${cityName(h.city)}`, top(D.hospitals.filter(o => o.city === h.city && o.id !== h.id), 3, byDoctors).map(hospitalCard), listUrl('hospitals', { city: h.city }), `All hospitals in ${cityName(h.city)}`)}
             ${ctaBand('Not sure this is the right hospital?', 'Send your reports and we will compare up to 3 hospitals with written estimates, free.', h.name)}
         </div>`;
-        return {
-            title: h.name,
-            description: clip(firstText(tabs) || `${h.name}, ${cityName(h.city)}: specialities, doctors and free cost estimates for international patients.`),
-            main,
-        };
+        const title = fit(53, `${nameIn}: Doctors, Specialities & Cost`, `${nameIn}: Doctors & Cost`, nameIn, label);
+        const staff = docs.length ? `${docs.length} ${docs.length === 1 ? 'doctor' : 'doctors'} and ` : '';
+        const specialities = `${staff}${h.departments.length} ${h.departments.length === 1 ? 'speciality' : 'specialities'}`;
+        const description = fit(158,
+            `${nameIn}: ${specialities} for international patients. See treatments and doctors, and get a free written cost estimate from Shifara Health.`,
+            `${nameIn}: ${specialities} for international patients. See doctors and treatments, and get a free cost estimate.`,
+            `${nameIn}: ${specialities} for international patients. Get a free written cost estimate.`,
+            `${nameIn}: ${specialities}. Get a free cost estimate.`);
+        const url = `${SITE}/hospital/${h.id}/`;
+        const head = seoHead({
+            url, title, description, ogType: 'business.business', image: x.image || h.logo, aboutId: url + '#hospital', faqs,
+            crumbs: [['Home', '/'], ['Hospitals', listUrl('hospitals')], [cityName(h.city), listUrl('hospitals', { city: h.city })], [h.name, `/hospital/${h.id}/`]],
+            nodes: [{
+                '@type': 'Hospital', '@id': url + '#hospital', name: h.name, url, description,
+                ...(x.image || h.logo ? { image: SITE + encodeURI(x.image || h.logo) } : {}),
+                ...(x.established ? { foundingDate: String(x.established) } : {}),
+                medicalSpecialty: [...new Set(h.departments.map(s => SPECIALTY[s]).filter(Boolean))].map(s => 'https://schema.org/' + s),
+                address: { '@type': 'PostalAddress', streetAddress: h.address || cityName(h.city), addressLocality: cityName(h.city), addressCountry: 'IN' },
+            }],
+        });
+        return { title, description, main, head };
     }
 
     // ---------- Doctor ----------
@@ -277,6 +409,7 @@ module.exports = function templates(UI, SITE) {
         [/nephrolog/i, 'Nephrologist'],
         [/ivf|reproductive|infertility|fertility/i, 'IVF Specialist'],
         [/obstetric|gyn(a)?ec/i, 'Gynaecologist'],
+        [/thoracic (organ|surg)|lung transplant/i, 'Thoracic & Lung Transplant Surgeon'],
         [/pulmonolog|chest|respiratory|lung/i, 'Pulmonologist'],
         [/\bent\b|otorhino|otolaryng/i, 'ENT Surgeon'],
         [/ophthalm|retina|cornea|cataract|\beye\b/i, 'Ophthalmologist'],
@@ -319,7 +452,7 @@ module.exports = function templates(UI, SITE) {
     // (\b keeps "Neurologist" out of urology)
     const ROLE_DEPT = [
         [/\burolog/i, 'urology'], [/onco|cancer/i, 'oncology'], [/nephrolog/i, 'nephrology'], [/spine/i, 'spine-surgery'],
-        [/neuro/i, 'neurology'], [/orthop|joint|sports/i, 'orthopedics'], [/cardi|electrophys/i, 'cardiology'],
+        [/neuro/i, 'neurology'], [/orthop|joint|sports/i, 'orthopedics'], [/cardi|electrophys|thoracic/i, 'cardiology'],
         [/gastro|hepatolog|gi surgeon/i, 'gastroenterology'], [/liver transplant/i, 'transplant'], [/ivf/i, 'ivf'],
         [/bariatric/i, 'bariatric'], [/ent surgeon/i, 'ent'], [/plastic|maxillofacial/i, 'cosmetic'], [/gynae/i, 'gynecology'],
         [/pulmonolog/i, 'pulmonology'], [/haemato|bone marrow/i, 'hematology'], [/endocrin/i, 'endocrinology'],
@@ -365,6 +498,83 @@ module.exports = function templates(UI, SITE) {
         return [...out, cur].map(x => x.trim()).filter(Boolean);
     }
 
+    // Treatments a doctor's "Areas of Expertise" names: [treatment id, words to find, the kind of doctor who performs it, short name for the title].
+    // Most sought-after first; the title shows the first ones that fit.
+    const CARDIAC_SURGEON = /cardiac surgeon/i, CATH = /cardiolog|electrophysiolog/i, NEURO_SURGEON = /neurosurgeon/i, NEURO_PHYSICIAN = /neurologist/i, SPINE = /spine|neurosurgeon|orthopaedic/i;
+    const ORTHO = /orthopaedic|joint replacement/i, URO = /urolog/i, GYNAE = /gynaecolog/i, IVF = /ivf|gynaecolog/i, PLASTIC = /plastic/i, VASCULAR = /vascular|interventional radiolog/i;
+    const DOCTOR_TREATMENTS = [
+        ['coronary-artery-bypass-cabg', /\bcabg\b|coronary artery bypass|bypass graft/i, CARDIAC_SURGEON, 'Bypass Surgery'],
+        ['heart-valve-replacement-avr-mvr', /valve (replacement|repair|surgery)/i, CARDIAC_SURGEON, 'Valve Replacement'],
+        ['heart-transplant', /heart transplant|cardiac transplant/i, /surgeon/i, 'Heart Transplant'],
+        ['bentall-surgery', /bentall/i, CARDIAC_SURGEON, 'Bentall Surgery'],
+        ['angioplasty-stent-2', /(paediatric|pediatric|congenital) (cardiac|heart) surg/i, /cardiac surgeon/i, 'Paediatric Heart Surgery'],
+        ['paediatric-heart-surgery', /\blvad\b|ventricular assist/i, CARDIAC_SURGEON, 'LVAD'],
+        ['angioplasty-stent', /angioplasty|\bstent/i, CATH, 'Angioplasty'],
+        ['tavi-procedure', /\btavi\b/i, CATH, 'TAVI'],
+        ['tavr-procedure-2', /\btavr\b/i, CATH, 'TAVR'],
+        ['paediatric-heart-surgery-2', /mitra.?clip/i, CATH, 'MitraClip'],
+        ['pacemaker-surgery', /pacemaker/i, CATH, 'Pacemaker'],
+        ['icd-implantation', /\bicd\b|defibrillator/i, CATH, 'ICD Implantation'],
+        ['eps-rfa-procedure', /ablation|electrophysiology stud/i, CATH, 'EPS & RFA'],
+        ['atrial-septal-defect-asd-closure', /\basd\b|septal defect/i, CATH, 'ASD Closure'],
+        ['total-knee-replacement', /knee (replacement|arthroplasty)|\btkr\b/i, ORTHO, 'Knee Replacement'],
+        ['hip-replacement', /hip (replacement|arthroplasty)|\bthr\b/i, ORTHO, 'Hip Replacement'],
+        ['joint-revision-surgery', /revision (joint|arthroplasty|knee|hip|replacement)/i, ORTHO, 'Joint Revision'],
+        ['anterior-cruciate-ligament-surgery', /\bacl\b|anterior cruciate/i, ORTHO, 'ACL Surgery'],
+        ['shoulder-arthroscopy', /shoulder arthroscop|arthroscopic shoulder|rotator cuff/i, ORTHO, 'Shoulder Arthroscopy'],
+        ['foot-ankle-surgery', /foot (and|&) ankle/i, ORTHO, 'Foot & Ankle Surgery'],
+        ['limb-salvage-surgery', /limb.salvage/i, /orthopaedic/i, 'Limb Salvage'],
+        ['scoliosis-surgery', /scoliosis/i, SPINE, 'Scoliosis Surgery'],
+        ['lumbar-microdiscectomy', /micro-?discectomy/i, SPINE, 'Microdiscectomy'],
+        ['decompression-fusion', /spinal fusion|decompression (and|&) fusion|lumbar fusion/i, SPINE, 'Spinal Fusion'],
+        ['spine-endoscopic-surgery', /endoscopic spine|spine endoscop/i, SPINE, 'Endoscopic Spine Surgery'],
+        ['tlif-1-level-transforaminal-lumbar-interbody-fusion', /\btlif\b/i, SPINE, 'TLIF'],
+        ['tumor-in-spinal-cord', /spinal (cord )?tumou?r/i, NEURO_SURGEON, 'Spinal Tumour Surgery'],
+        ['brain-tumor-neuronavigation-surgery', /brain tumou?r/i, NEURO_SURGEON, 'Brain Tumour Surgery'],
+        ['deep-brain-stimulation-dbs', /deep brain stimulation|\bdbs\b/i, NEURO_SURGEON, 'Deep Brain Stimulation'],
+        ['epilepsy-surgery', /epilepsy surg/i, NEURO_SURGEON, 'Epilepsy Surgery'],
+        ['pituitary-tumour-surgery', /pituitary/i, NEURO_SURGEON, 'Pituitary Surgery'],
+        ['gamma-knife-radiosurgery', /gamma knife/i, /neurosurgeon|radiation/i, 'Gamma Knife'],
+        ['cyberknife-surgery', /cyber ?knife/i, /neurosurgeon|radiation/i, 'CyberKnife'],
+        ['parkinsons-disease-management', /parkinson/i, NEURO_PHYSICIAN, "Parkinson's Disease"],
+        ['motor-neuron-disease-mnd-care', /motor neuron/i, NEURO_PHYSICIAN, 'Motor Neuron Disease'],
+        ['kidney-transplant', /kidney transplant|renal transplant/i, URO, 'Kidney Transplant'],
+        ['liver-transplant', /liver transplant/i, /liver transplant|gi surgeon/i, 'Liver Transplant'],
+        ['adult-bone-marrow-transplant', /bone marrow transplant|\bbmt\b|stem cell transplant/i, /^(?!paediatric).*(haemato|bone marrow|medical oncolog)/i, 'Bone Marrow Transplant'],
+        ['paediatric-bone-marrow-transplant', /bone marrow transplant|\bbmt\b|stem cell transplant/i, /paediatric (haemato|oncolog)/i, 'Bone Marrow Transplant'],
+        ['car-t-cell-therapy', /car.?t\b/i, /haemato|bone marrow|medical oncolog/i, 'CAR-T Therapy'],
+        ['proton-therapy', /proton/i, /radiation/i, 'Proton Therapy'],
+        ['hipec', /\bhipec\b/i, /surgical oncolog|gynaecologic oncolog|gi surgeon/i, 'HIPEC'],
+        ['robotic-prostatectomy', /robotic.{0,30}prostatectomy/i, URO, 'Robotic Prostatectomy'],
+        ['robotic-nephrectomy', /robotic.{0,30}nephrectomy/i, URO, 'Robotic Nephrectomy'],
+        ['pcnl-procedure', /\bpcnl\b|percutaneous nephrolith/i, URO, 'PCNL'],
+        ['rirs-stenting', /\brirs\b|retrograde intrarenal/i, URO, 'RIRS'],
+        ['turp', /\bturp\b|transurethral resection of the prostate/i, URO, 'TURP'],
+        ['urethroplasty', /urethroplasty/i, URO, 'Urethroplasty'],
+        ['microscopic-varicocelectomy', /varicocele/i, URO, 'Varicocelectomy'],
+        ['in-vitro-fertilisation', /\bivf\b|in.?vitro/i, IVF, 'IVF'],
+        ['iui', /\biui\b|intrauterine insemination/i, IVF, 'IUI'],
+        ['laparoscopic-hysterectomy', /(laparoscopic|tlh).{0,30}hysterectomy/i, GYNAE, 'Laparoscopic Hysterectomy'],
+        ['hysterectomy', /hysterectomy/i, GYNAE, 'Hysterectomy'],
+        ['myomectomy', /myomectomy/i, GYNAE, 'Myomectomy'],
+        ['hair-transplant', /hair transplant/i, PLASTIC, 'Hair Transplant'],
+        ['liposuction', /liposuction/i, PLASTIC, 'Liposuction'],
+        ['tummy-tuck', /tummy tuck/i, PLASTIC, 'Tummy Tuck'],
+        ['abdominoplasty', /abdominoplasty/i, PLASTIC, 'Abdominoplasty'],
+        ['scar-revision', /scar revision/i, PLASTIC, 'Scar Revision'],
+        ['gender-affirmation-surgery', /gender.(affirm|reassign)/i, PLASTIC, 'Gender Affirmation'],
+        ['endovascular-surgery', /endovascular/i, VASCULAR, 'Endovascular Surgery'],
+        ['laser-treatment-for-varicose-veins', /varicose/i, VASCULAR, 'Varicose Veins'],
+        ['thrombectomy', /thrombectomy/i, VASCULAR, 'Thrombectomy'],
+    ].map(([id, words, doctor, short]) => ({ t: treatBy[id], words, doctor, short }));
+
+    function doctorTreatments(x, role) {
+        const text = (x.tabs || []).find(t => t.title === 'Areas of Expertise')?.blocks.map(b => `${b.lead || ''} ${b.text || ''}`).join(' ') || '';
+        return DOCTOR_TREATMENTS.filter(o => o.t && o.doctor.test(role) && o.words.test(text))
+            // the laparoscopic hysterectomy row already says hysterectomy
+            .filter((o, i, all) => !(o.t.id === 'hysterectomy' && all.some(a => a.t.id === 'laparoscopic-hysterectomy')));
+    }
+
     // section headings that carry the doctor's name, with the short label used in the "On this page" bar
     const DOCTOR_TABS = {
         'About the Doctor': [n => `About ${n}`, 'About'],
@@ -372,6 +582,14 @@ module.exports = function templates(UI, SITE) {
         'Key Achievements': [n => `Key Achievements of ${n}`, 'Achievements'],
         'Awards & Recognition': [n => `Awards & Recognition`, 'Awards'],
     };
+
+    // keyword links from a doctor's page to the listing pages of the department
+    function peerDeptLinks(role, dept, roleDept) {
+        const s = roleDept || dept;
+        if (!deptBy[s]) return '';
+        return `
+                        <p>See also: <a href="${listUrl('doctors', { department: s })}">${esc(listingTitle('doctors', { department: s }))}</a> and <a href="${listUrl('hospitals', { department: s })}">${esc(listingTitle('hospitals', { department: s }))}</a>.</p>`;
+    }
 
     function doctor(d, x) {
         const h = d.hospitalId ? hospBy[d.hospitalId] : null;
@@ -381,9 +599,15 @@ module.exports = function templates(UI, SITE) {
         // the page targets India as a whole: the city stays in the facts and address, not in the title or headings
         const roleIn = `${role} in India`;
         const exp = d.experience ? ` with ${d.experience}+ years of experience` : '';
+        const performs = doctorTreatments(x, role);
+        // role, then the treatments that fit, then India; a treatment the role already names is not repeated
+        const shortNames = performs.map(o => o.short).filter(s => !role.toLowerCase().includes(s.toLowerCase()));
+        const withTreatments = names => names.length ? `${role} for ${names.join(' & ')} in India` : roleIn;
+        const headline = [shortNames.slice(0, 2), shortNames.slice(0, 1), []].map(withTreatments).find(h => `${d.name} - ${h}`.length <= 70) || roleIn;
+        const treatedText = performs.length ? ` Treatments include ${andList(performs.slice(0, 4).map(o => o.t.name))}.` : '';
         const tabs = (x.tabs || []).map((t, i) => {
             const [heading, nav] = DOCTOR_TABS[t.title] || [() => t.title, t.title];
-            const blocks = i === 0 ? [{ t: 'p', text: `${d.name} is a ${roleIn}${exp}, currently at ${d.hospital}.` }, ...t.blocks] : t.blocks;
+            const blocks = i === 0 ? [{ t: 'p', text: `${d.name} is a ${roleIn}${exp}, currently at ${d.hospital}.${treatedText}` }, ...t.blocks] : t.blocks;
             return { ...t, title: heading(d.name), nav, blocks };
         });
         const { degrees, position } = designationParts(d.designation || '');
@@ -395,10 +619,10 @@ module.exports = function templates(UI, SITE) {
         const hospLink = h ? `<a href="${link.hospital(h.id)}">${esc(h.name)}</a>` : esc(d.hospital);
         const roleDept = ROLE_DEPT.find(([re]) => re.test(role))?.[1];
         const depts = [...new Set([roleDept, ...d.departments].filter(Boolean))];
-        const treatments = depts.flatMap(s => D.treatments.filter(t => t.department === s && t.cost)).slice(0, 6);
+        const treatments = depts.flatMap(s => D.treatments.filter(t => t.department === s && hasPrice(t) && !performs.some(o => o.t.id === t.id))).slice(0, 6);
         const expertise = (x.tabs || []).find(t => t.title === 'Areas of Expertise')?.blocks.filter(b => b.lead).map(b => b.lead) || [];
         const photo = d.image
-            ? `<img src="${esc(d.image)}" alt="${esc(`${d.name} - ${roleIn}`)}" fetchpriority="high">`
+            ? `<img src="${esc(d.image)}" alt="${esc(`${d.name} - ${headline}`)}" fetchpriority="high">`
             : `<span class="lc-initials">${esc(initials(d.name))}</span>`;
         // doctors with the same role first ("More Liver Transplant Surgeons"), then the rest of the department
         const others = D.doctors.filter(o => o.id !== d.id);
@@ -408,9 +632,12 @@ module.exports = function templates(UI, SITE) {
         const peerDept = sameRole.length && roleDept ? roleDept : dept;
 
         // up to 70 characters so long names keep "in India"; Google may shorten the brand suffix in results
-        const title = fit(70, `${d.name} - ${roleIn}`, `${d.name} - ${role}`, d.name);
+        const title = fit(70, `${d.name} - ${headline}`, `${d.name} - ${roleIn}`, `${d.name} - ${role}`, d.name);
         const years = d.experience ? ` ${d.experience}+ years' experience.` : '';
+        const forTreatments = shortNames.length ? `, for ${andList(shortNames.slice(0, 3))}` : '';
         const description = fit(158,
+            ...(forTreatments ? [`${d.name}, ${roleIn} at ${d.hospital}${forTreatments}.${years} Book a consultation and get a free cost estimate.`,
+                `${d.name}, ${roleIn} at ${d.hospital}${forTreatments}. Book a consultation and get a free cost estimate.`] : []),
             `${d.name} is a ${roleIn} at ${d.hospital}${exp}. Book a consultation from abroad and get a free cost estimate.`,
             `${d.name}, ${roleIn} at ${d.hospital}.${years} Book a consultation and get a free cost estimate.`,
             `${d.name}, ${roleIn} at ${d.hospital}.${years} Book a free consultation.`,
@@ -429,10 +656,11 @@ module.exports = function templates(UI, SITE) {
             ...(h ? [[`Which hospital does ${d.name} practise at?`, `${esc(d.name)} practises at ${hospLink}, ${esc(h.address || city)}.`]] : []),
             [`How can international patients book an appointment with ${d.name}?`, `Send your medical reports to Shifara Health on WhatsApp or through the form on this page. A case manager replies within 24 hours, arranges your appointment with ${esc(d.name)} and shares a written cost estimate. Our help is free for patients.`],
             ...(x.fee ? [[`Does ${d.name} offer video consultation?`, `Yes. You can book a <a href="${esc(bookUrl('Video consultation with ' + d.name))}">video consultation with ${esc(d.name)}</a> before you travel to India. The fee is ${esc(x.fee)}.`]] : []),
-            [`What does treatment with ${d.name} cost?`, `The cost depends on the procedure, the room category and how long you stay in hospital. Share your reports and we will get a written estimate from ${esc(d.hospital)} at no charge.${treatments.length ? ' Indicative costs for related treatments are listed above.' : ''}`],
-            [`Do I need a medical visa to see ${d.name} in India?`, `Most international patients travel on India's e-Medical Visa. Once the hospital confirms your treatment plan, we arrange the invitation letter and guide you through the application, free. Read our <a href="/travel-visa/">medical visa guide</a>.`],
+            [`What does treatment with ${d.name} cost?`, `The cost depends on the procedure, the room category and how long you stay in hospital. Share your reports and we will get a written estimate from ${esc(d.hospital)} at no charge.${performs.length || treatments.length ? ' Indicative costs for related treatments are listed above.' : ''}`],
+            [`Do I need a medical visa to see ${d.name} in India?`, VISA_ANSWER],
         ];
 
+        const seeAlso = peerDeptLinks(role, dept, roleDept);
         // [section title, html, short label for the "On this page" bar]
         const extra = [
             ...(quals.length || position ? [[`${d.name}'s Qualifications & Experience`, `
@@ -442,71 +670,27 @@ module.exports = function templates(UI, SITE) {
                         </ul>` : ''}${position ? `
                         <p><b>Current position:</b> ${esc(position)}</p>` : ''}`, 'Qualifications']] : []),
             [`Consult ${d.name} from Abroad`, `
-                        <p>How Shifara Health connects international patients with ${esc(d.name)}, ${esc(roleIn)}.</p>
-                        <div class="dt-steps">${steps.map(([t, p], i) => `
-                            <div class="dt-step"><span>${String(i + 1).padStart(2, '0')}</span>
-                                <div><b>${esc(t)}</b><p>${esc(p)}</p></div></div>`).join('')}
-                        </div>`, 'Consult from abroad'],
-            ...(treatments.length ? [['Treatment Costs in India', `
-                        <p>Indicative package costs in India at Shifara partner hospitals. Your written estimate depends on your reports.</p>
-                        <div class="dt-cost">
-                            <table>
-                                <thead><tr><th>Treatment</th><th>Indicative cost (USD)</th></tr></thead>
-                                <tbody>${treatments.map(t => `
-                                    <tr><td><a href="${link.treatment(t.id)}">${esc(t.name)}</a></td><td>${esc(t.cost)}</td></tr>`).join('')}
-                                </tbody>
-                            </table>
-                        </div>`, 'Costs']] : []),
-            [`FAQs about ${d.name}`, faqs.map(([q, a]) => `
-                        <details class="dt-faq">
-                            <summary>${esc(q)}</summary>
-                            <p>${a}</p>
-                        </details>`).join(''), 'FAQs'],
+                        <p>How Shifara Health connects international patients with ${esc(d.name)}, ${esc(roleIn)}.</p>${stepsBlock(steps)}`, 'Consult from abroad'],
+            ...(performs.length ? [[`Treatments by ${d.name} in India`, `
+                        <p>Treatments named in this doctor's profile. Costs are indicative package prices in India; your written estimate depends on your reports.</p>${costTable(performs.map(o => o.t))}${seeAlso}`, 'Treatments']] : []),
+            ...(treatments.length ? [[performs.length ? 'Related Treatment Costs in India' : 'Treatment Costs in India', `
+                        <p>Indicative package costs in India at Shifara partner hospitals. Your written estimate depends on your reports.</p>${costTable(treatments)}${performs.length ? '' : seeAlso}`, 'Costs']] : []),
+            [`FAQs about ${d.name}`, faqBlock(faqs), 'FAQs'],
         ];
 
         const crumbs = [['Doctors', listUrl('doctors')], ...(dept ? [[deptBy[dept]?.noun + ' doctors', listUrl('doctors', { department: dept })]] : [])];
-        const org = { '@type': 'Organization', '@id': SITE + '/#organization', name: 'Shifara Health', url: SITE + '/', logo: SITE + '/assets/images/logo/shifara-logo.png' };
-        const head = `    <meta name="author" content="Shifara Health">
-    <meta name="robots" content="index, follow, max-image-preview:large">
-    <link rel="canonical" href="${canonical}">
-    <meta property="og:type" content="profile">
-    <meta property="og:site_name" content="Shifara Health">
-    <meta property="og:locale" content="en_IN">
-    <meta property="og:title" content="${esc(title)}">
-    <meta property="og:description" content="${esc(description)}">
-    <meta property="og:url" content="${canonical}">
-    <meta property="og:image" content="${esc(SITE + encodeURI(d.image || '/assets/images/logo/shifara-logo.png'))}">
-    <meta name="twitter:card" content="summary">
-    ${jsonLd({
-        '@context': 'https://schema.org',
-        '@graph': [
-            {
-                '@type': 'WebPage', '@id': url + '#webpage', url, name: title, description, inLanguage: 'en-IN',
-                about: { '@id': url + '#physician' }, breadcrumb: { '@id': url + '#breadcrumb' },
-                ...(d.image ? { primaryImageOfPage: SITE + encodeURI(d.image) } : {}),
-                author: { '@id': org['@id'] }, publisher: { '@id': org['@id'] },
-            },
-            org,
-            {
+        const head = seoHead({
+            url, canonical, title, description, ogType: 'profile', image: d.image, aboutId: url + '#physician', faqs,
+            crumbs: [['Home', '/'], ...crumbs, [d.name, `/doctor/${d.id}/`]],
+            nodes: [{
                 '@type': 'Physician', '@id': url + '#physician', name: d.name, url, description,
                 ...(d.image ? { image: SITE + encodeURI(d.image) } : {}),
                 medicalSpecialty: [...new Set(depts.map(s => SPECIALTY[s]).filter(Boolean))].map(s => 'https://schema.org/' + s),
                 ...(expertise.length ? { knowsAbout: expertise } : {}),
                 ...(h ? { hospitalAffiliation: { '@type': 'Hospital', name: h.name, url: SITE + link.hospital(h.id) } } : {}),
                 address: { '@type': 'PostalAddress', addressLocality: city, addressCountry: 'IN' },
-            },
-            {
-                '@type': 'BreadcrumbList', '@id': url + '#breadcrumb',
-                itemListElement: [['Home', '/'], ...crumbs, [d.name, `/doctor/${d.id}/`]].map(([name, p], i) =>
-                    ({ '@type': 'ListItem', position: i + 1, name, item: SITE + p })),
-            },
-            {
-                '@type': 'FAQPage',
-                mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: strip(a) } })),
-            },
-        ],
-    })}
-`;
+            }],
+        });
 
         const main = `
         <section class="dt-hero">
@@ -515,7 +699,7 @@ module.exports = function templates(UI, SITE) {
                 <div class="dt-head dt-head-doc">
                     <div class="dt-photo">${photo}</div>
                     <div class="min-w-0">
-                        <h1>${esc(d.name)} <span class="dt-h1-role">${esc(roleIn)}</span></h1>
+                        <h1>${esc(d.name)} <span class="dt-h1-role">${esc(headline)}</span></h1>
                         <p class="dt-desig">${esc(d.designation)}</p>
                         <div class="dt-facts">
                             ${d.experience ? `<span>${svg('clock')}${d.experience}+ years experience</span>` : ''}
@@ -541,7 +725,7 @@ module.exports = function templates(UI, SITE) {
                 <div class="col-lg-4">
                     <aside class="dt-side">${h ? `
                         <a class="dt-hosp" href="${link.hospital(h.id)}">
-                            <span class="dt-hosp-logo">${logo(h, '')}</span>
+                            <span class="dt-hosp-logo">${logo(h, `${h.name}, India`)}</span>
                             <span class="min-w-0"><small>Practises at</small><b>${esc(h.name)}</b><span>${esc(h.address || city)}</span></span>
                             ${svg('arrow', 'i')}
                         </a>` : ''}
@@ -566,11 +750,30 @@ module.exports = function templates(UI, SITE) {
     function treatment(t, x) {
         const dept = t.department;
         const cost = x.cost;
-        const hosps = top(D.hospitals.filter(h => h.departments.includes(dept)), 3, byDoctors);
+        const nameIn = `${t.name} in India`;
+        const noun = deptBy[dept]?.noun || '';
+        const who = /surg|replacement|transplant|bypass|ectomy|plasty|arthroscop/i.test(t.name) ? 'Surgeons' : 'Doctors';
+        const deptHospitals = D.hospitals.filter(h => h.departments.includes(dept));
+        const hosps = top(deptHospitals, 3, byDoctors);
         const docs = top(D.doctors.filter(d => d.departments.includes(dept)), 3, byExperience);
         const others = D.treatments.filter(o => o.department === dept && o.id !== t.id).slice(0, 4);
-        const intro = x.sections?.[0]?.blocks?.find(b => b.t === 'p')?.text;
-        const navTitles = [...(x.sections || []).map(s => s.title), ...(x.steps?.length ? ['Your journey'] : []), ...(cost ? ['Cost'] : [])];
+        const costlySiblings = D.treatments.filter(o => o.department === dept && o.id !== t.id && hasPrice(o)).slice(0, 8);
+        const allHospitals = listUrl('hospitals', { treatment: t.id });
+        const allDoctors = listUrl('doctors', { treatment: t.id });
+        const faqs = [
+            ...(hasPrice(t) ? [[`How much does ${t.name} cost in India?`, `The indicative package cost in India is ${esc(t.cost)}. Your written estimate depends on your reports, the hospital and your room category, and we share it free.`]] : []),
+            ...(hosps.length ? [['Which hospitals are best for this treatment in India?', `Shifara partner hospitals for this treatment include ${andList(hosps.map(hospitalLink))}. The right hospital depends on your diagnosis, so send your reports and we will compare up to 3 hospitals for you, free. <a href="${allHospitals}">Compare ${esc(t.name)} hospitals in India</a>.`]] : []),
+            ...(docs.length ? [['Who are the top doctors for this treatment in India?', `Senior specialists on our panel include ${andList(docs.map(doctorLink))}. <a href="${allDoctors}">See ${esc(t.name)} doctors in India</a>.`]] : []),
+            [`How can international patients plan this treatment in India?`, 'Send your medical reports to Shifara Health on WhatsApp or through the form on this page. A case manager replies within 24 hours, suggests suitable hospitals and specialists, and shares a written cost estimate. Our help is free for patients.'],
+            ['Do I need a medical visa for treatment in India?', VISA_ANSWER],
+        ];
+        // [section title, html, short label for the "On this page" bar]
+        const extra = [
+            ...(costlySiblings.length ? [[`Related ${noun} Treatment Costs in India`, `
+                        <p>Indicative package costs in India at Shifara partner hospitals. Your written estimate depends on your reports.</p>${costTable(costlySiblings)}`, 'Related costs']] : []),
+            ['Frequently Asked Questions', faqBlock(faqs), 'FAQs'],
+        ];
+        const navTitles = [...(x.sections || []).map(s => s.title), ...(x.steps?.length ? ['Your journey'] : []), ...(cost ? ['Cost'] : []), ...extra.map(([title, , nav]) => [nav, title])];
 
         const main = `
         <section class="dt-hero dt-hero-treat">
@@ -579,9 +782,9 @@ module.exports = function templates(UI, SITE) {
                     <div class="col-lg-7">
                         ${crumb([['Treatments', listUrl('treatments')], [deptName(dept), listUrl('treatments', { department: dept })], [t.name]])}
                         <span class="dt-badge">${esc(deptName(dept))}</span>
-                        <h1>${esc(t.name)}</h1>
+                        <h1>${esc(nameIn)}</h1>
                         ${x.tagline ? `<p class="dt-tagline">${esc(x.tagline)}</p>` : ''}
-                        ${t.cost ? `<div class="dt-price"><small>Starting from</small><b>${esc(startingPrice(t.cost))}</b><span>Package range ${esc(t.cost)} · indicative</span></div>` : ''}
+                        ${hasPrice(t) ? `<div class="dt-price"><small>Starting from</small><b>${esc(startingPrice(t.cost))}</b><span>Package range ${esc(t.cost)} · indicative</span></div>` : ''}
                         <div class="dt-actions">
                             <a href="${esc(bookUrl(t.name))}" class="btn btn-coral">Let us help you ${svg('arrow', 'i')}</a>
                             <a href="${wa(`Hi Shifara, I need information about ${t.name} in India`)}" target="_blank" rel="noopener" class="btn btn-wa">${svg('wa', 'i')} Talk to an advisor</a>
@@ -593,7 +796,7 @@ module.exports = function templates(UI, SITE) {
                                 <input type="hidden" name="subject" value="${esc(t.name)}">
                                 <span class="dt-quote-kicker">100% free · Reply within 24 hrs</span>
                                 <h3>Let Us Help You</h3>
-                                <p class="dt-quote-sub">Upfront cost estimate &amp; specialist options for ${esc(t.name)}</p>
+                                <p class="dt-quote-sub">Upfront cost estimate &amp; specialist options for your treatment</p>
                                 <div class="d-grid gap-2">
                                     <input class="form-control" name="name" type="text" required placeholder="Full name" aria-label="Full name">
                                     <input class="form-control" name="phone" type="tel" required placeholder="WhatsApp / phone with country code" aria-label="Phone">
@@ -613,9 +816,10 @@ module.exports = function templates(UI, SITE) {
             <div class="row g-4 g-xl-5">
                 <div class="col-lg-8">${(x.sections || []).map((s, i) => `
                     <section class="dt-sec dt-sec-media" id="sec-${slug(s.title)}">${s.img ? `
-                        <div class="dt-sec-img${i % 2 ? ' order-md-last' : ''}"><img src="${esc(s.img)}" alt="" loading="lazy"></div>` : ''}
+                        <div class="dt-sec-img${i % 2 ? ' order-md-last' : ''}"><img src="${esc(s.img)}" alt="${esc(i ? `${s.title.includes(t.name) ? '' : t.name + ': '}${s.title.replace(/[?.]$/, '')}` : `${t.name} in India`)}" loading="lazy"></div>` : ''}
                         <div class="dt-sec-text">
-                            <h2>${esc(s.title)}</h2>${blocksHtml(s.blocks)}
+                            <h2>${esc(s.title)}</h2>${i ? '' : `
+                        <p>${esc(nameIn)} is available at ${deptHospitals.length} accredited partner hospitals through Shifara Health${hasPrice(t) ? `, with indicative packages from ${esc(startingPrice(t.cost))}` : ''}.</p>`}${blocksHtml(s.blocks)}
                         </div>
                     </section>`).join('')}
                     ${x.steps?.length ? section('Your journey', `
@@ -626,7 +830,7 @@ module.exports = function templates(UI, SITE) {
                         </div>`) : ''}
                     ${cost ? `
                     <section class="dt-sec" id="sec-cost">
-                        <h2>${esc(cost.title)}</h2>${cost.intro ? `
+                        <h2>${esc(t.name)} Cost in India</h2>${cost.intro ? `
                         <p>${esc(cost.intro)}</p>` : ''}
                         <div class="dt-cost">
                             <table>
@@ -637,31 +841,136 @@ module.exports = function templates(UI, SITE) {
                             </table>
                         </div>${cost.note ? `
                         <p class="dt-cost-note">${esc(cost.note)}</p>` : ''}
-                    </section>` : ''}
+                    </section>` : ''}${extra.map(([title, inner]) => section(title, inner)).join('')}
                 </div>
                 <div class="col-lg-4">
                     <aside class="dt-side">
                         <div class="dt-glance">
                             <h3>At a glance</h3>
                             <div><small>Department</small><a href="${listUrl('treatments', { department: dept })}">${esc(deptName(dept))}</a></div>
-                            ${t.cost ? `<div><small>Indicative cost</small><b>${esc(t.cost)}</b></div>` : ''}
-                            <div><small>Partner hospitals</small><a href="${listUrl('hospitals', { treatment: t.id })}">${D.hospitals.filter(h => h.departments.includes(dept)).length} hospitals</a></div>
-                            <div><small>Specialists</small><a href="${listUrl('doctors', { treatment: t.id })}">${D.doctors.filter(d => d.departments.includes(dept)).length} doctors</a></div>
-                        </div>${quoteBox(t.name, 'dtSideQuote')}
+                            ${hasPrice(t) ? `<div><small>Indicative cost</small><b>${esc(t.cost)}</b></div>` : ''}
+                            <div><small>Partner hospitals</small><a href="${allHospitals}">${deptHospitals.length} hospitals</a></div>
+                            <div><small>Specialists</small><a href="${allDoctors}">${D.doctors.filter(d => d.departments.includes(dept)).length} doctors</a></div>
+                        </div>${quoteBox(t.name, 'dtSideQuote', 'your treatment')}
                     </aside>
                 </div>
             </div>
-            ${related(`Hospitals for ${t.name}`, hosps.map(hospitalCard), listUrl('hospitals', { treatment: t.id }), 'All hospitals')}
-            ${related(`${deptBy[dept]?.noun || ''} specialists`, docs.map(doctorCard), listUrl('doctors', { treatment: t.id }), 'All doctors')}
-            ${related('Related treatments', others.map(treatmentCard), listUrl('treatments', { department: dept }), 'View all', 'row-cols-1 row-cols-sm-2 row-cols-lg-4')}
+            ${related(`Best Hospitals for ${nameIn}`, hosps.map(hospitalCard), allHospitals, 'All hospitals')}
+            ${related(`Top Doctors for ${nameIn}`, docs.map(doctorCard), allDoctors, 'All doctors')}
+            ${related(`Related ${noun} Treatments in India`, others.map(treatmentCard), listUrl('treatments', { department: dept }), 'View all', 'row-cols-1 row-cols-sm-2 row-cols-lg-4')}
             ${ctaBand(`Planning ${t.name} in India?`, 'Tell us about your condition and we will send a treatment plan and cost estimate within 48 hours, free.', t.name)}
         </div>`;
-        return {
-            title: `${t.name} in India: cost, hospitals & doctors`,
-            description: clip(x.tagline ? `${x.tagline} ${intro || ''}` : intro || `${t.name} in India: indicative cost, partner hospitals and specialists.`),
-            main,
-        };
+        // up to 53 characters: 70 with the brand suffix
+        const title = hasPrice(t)
+            ? fit(53, `${nameIn}: Cost, Hospitals & ${who}`, `${nameIn}: Cost & Hospitals`, `${t.name} Cost in India`, nameIn)
+            : fit(53, `${nameIn}: Hospitals & ${who}`, `${nameIn}: Best Hospitals`, nameIn);
+        const price = hasPrice(t) ? ` starts from ${startingPrice(t.cost)}` : '';
+        const description = fit(158,
+            `${nameIn}${price}. Compare accredited hospitals and experienced ${who.toLowerCase()}, and get a free written cost estimate from Shifara Health.`,
+            `${nameIn}${price}. Compare accredited hospitals and get a free written cost estimate from Shifara Health.`,
+            `${nameIn}${price}. Get a free written cost estimate from Shifara Health.`);
+        const url = `${SITE}/treatment/${t.id}/`;
+        const head = seoHead({
+            url, title, description, image: t.image, aboutId: url + '#procedure', faqs,
+            crumbs: [['Home', '/'], ['Treatments', listUrl('treatments')], [deptName(dept), listUrl('treatments', { department: dept })], [t.name, `/treatment/${t.id}/`]],
+            nodes: [{
+                '@type': 'MedicalProcedure', '@id': url + '#procedure', name: t.name, url, description,
+                ...(t.image ? { image: SITE + encodeURI(t.image) } : {}),
+                ...(SPECIALTY[dept] ? { relevantSpecialty: 'https://schema.org/' + SPECIALTY[dept] } : {}),
+            }],
+        });
+        return { title, description, main, head };
     }
 
-    return { hospital, doctor, treatment };
+    // ---------- Listing pages ----------
+    // Meta description of a listing page, from the same results the page shows
+    function listingDescription(type, st, items) {
+        const t = st.treatment ? treatBy[st.treatment] : null;
+        const dept = st.department || t?.department;
+        const h = st.hospital ? hospBy[st.hospital] : null;
+        const where = st.city ? `${cityName(st.city)}, India` : 'India';
+        const n = items.length;
+        const close = 'and get free written estimates.';
+        if (type === 'hospitals') {
+            const what = t ? `hospitals for ${t.name}` : dept ? `${searchTerm(dept)} hospitals` : 'hospitals';
+            return fit(158, `Compare ${n} accredited ${what} in ${where} for international patients. See doctors and specialities, ${close}`, `Compare ${n} accredited ${what} in ${where}. Get free written cost estimates.`);
+        }
+        if (type === 'doctors') {
+            if (h) return fit(158, `${n} ${dept ? searchDoctors(dept) : 'doctors'} at ${hospitalLabel(h)}, India. See their experience and qualifications, ${close}`, `${n} ${dept ? searchDoctors(dept) : 'doctors'} at ${hospitalLabel(h)}, India. Get a free opinion.`);
+            const what = t ? `doctors for ${t.name}` : dept ? searchDoctors(dept) : 'senior doctors';
+            return fit(158, `Find ${n} experienced ${what} in ${where} at accredited hospitals. Get a free opinion and written cost estimate before you travel.`, `Find ${n} experienced ${what} in ${where}. Get a free opinion before you travel.`);
+        }
+        const what = dept ? `${searchTerm(dept)} treatments` : 'treatments';
+        return fit(158, `Compare ${n} ${what} in India with indicative costs, accredited hospitals and experienced doctors, ${close}`, `Compare ${n} ${what} in India. Get free written cost estimates.`);
+    }
+
+    // Text below the results: how to choose, costs, related pages and FAQs, all from the catalog
+    function listingAbout(type, st, items) {
+        const t = st.treatment ? treatBy[st.treatment] : null;
+        const dept = st.department || t?.department;
+        const h = st.hospital ? hospBy[st.hospital] : null;
+        const where = st.city ? `${cityName(st.city)}, India` : 'India';
+        const field = t ? t.name : dept ? deptName(dept) : '';
+        const topic = t ? t.name : dept ? searchTerm(dept) : '';
+        const n = items.length;
+        const byCity = {};
+        items.forEach(it => { if (it.city) byCity[it.city] = (byCity[it.city] || 0) + 1; });
+        const cities = Object.keys(byCity).sort((a, b) => byCity[b] - byCity[a]).map(cityName);
+        const across = st.city || h || !cities.length ? '' : `, across ${andList(cities.slice(0, 6))}`;
+        const deptDoctors = o => dept ? D.doctors.filter(d => d.hospitalId === o.id && d.departments.includes(dept)).length : o.doctors;
+        const costs = (t ? [t, ...D.treatments.filter(o => o.department === dept && o.id !== t.id)] : dept ? D.treatments.filter(o => o.department === dept) : []).filter(hasPrice).slice(0, 12);
+        const filters = t ? { treatment: t.id } : dept ? { department: dept } : null;
+        const also = filters && !h ? [
+            ...(type !== 'hospitals' ? [[listUrl('hospitals', filters), listingTitle('hospitals', filters)]] : []),
+            ...(type !== 'doctors' ? [[listUrl('doctors', filters), listingTitle('doctors', filters)]] : []),
+            ...(type !== 'treatments' && D.treatments.some(o => o.department === dept) ? [[listUrl('treatments', { department: dept }), listingTitle('treatments', { department: dept })]] : []),
+            ...(t ? [[link.treatment(t.id), `${t.name} in India`]] : []),
+        ] : [];
+        const alsoHtml = also.length ? `
+                        <p>Related: ${andList(also.map(([href, text]) => `<a href="${href}">${esc(text)}</a>`))}.</p>` : '';
+
+        let heading, intro, advice, best;
+        if (type === 'hospitals') {
+            const top5 = [...items].sort((a, b) => deptDoctors(b) - deptDoctors(a)).slice(0, 5).map(hospitalLink);
+            heading = field ? `How to Choose a Hospital for ${field} in ${where}` : `How to Choose a Hospital in ${where}`;
+            intro = `Shifara Health works with ${n} accredited partner ${n === 1 ? 'hospital' : 'hospitals'}${field ? ` for ${esc(field)}` : ''} in ${esc(where)}${esc(across)}. International patients can compare them, send their reports and get written cost estimates before they travel.`;
+            advice = `Hospitals with the most specialists on our panel include ${andList(top5)}. The right hospital depends on your diagnosis, so a Shifara case manager reviews your reports and compares up to 3 hospitals for you, free.`;
+            best = [t ? `Which are the best hospitals for ${t.name} in ${where}?` : topic ? `Which are the best ${topic} hospitals in ${where}?` : `Which are the best hospitals in ${where}?`,
+                `Shifara partner hospitals${field ? ` for ${esc(field)}` : ''} in ${esc(where)} include ${andList(top5)}. The right choice depends on your diagnosis and budget, so send your reports and we will compare up to 3 hospitals for you, free.`];
+        } else if (type === 'doctors') {
+            const top5 = items.slice(0, 5).map(doctorLink);
+            const specialists = dept ? `${esc(deptName(dept))} specialists` : 'specialists';
+            heading = h ? `Consult a Doctor at ${hospitalLabel(h)} from Abroad` : field ? `How to Choose a Doctor for ${field} in ${where}` : `How to Choose a Doctor in ${where}`;
+            intro = `Shifara Health lists ${n} ${specialists}${t ? ` who can advise on ${esc(t.name)}` : ''} ${h ? `at ${hospitalLink(h)}, India` : `at accredited hospitals in ${esc(where)}${esc(across)}`}. Each profile shows the doctor's qualifications, experience and hospital.`;
+            advice = `The most experienced specialists on our panel include ${andList(top5)}. Share your reports and get a free opinion from a senior specialist before you travel.`;
+            best = [h ? `Which doctors practise at ${hospitalLabel(h)}?` : t ? `Who are the best doctors for ${t.name} in ${where}?` : dept ? `Who are the best ${searchDoctors(dept)} in ${where}?` : `Who are the best doctors in ${where}?`,
+                `Senior specialists on our panel include ${andList(top5)}. The right doctor depends on your diagnosis, so send your reports and a case manager will suggest suitable specialists, free.`];
+        } else {
+            const top5 = items.slice(0, 5).map(treatmentLink);
+            heading = field ? `${field} Treatment in India` : 'Medical Treatment in India for International Patients';
+            intro = `Shifara Health coordinates ${n} ${field ? `${esc(field)} ` : ''}${n === 1 ? 'treatment' : 'treatments'} at accredited hospitals in India, including ${andList(top5)}.`;
+            advice = 'Send your reports and a case manager will suggest the right treatment, hospital and cost, free.';
+            best = [field ? `Which ${topic} treatments are available in India?` : 'Which treatments are available in India?',
+                `Treatments coordinated by Shifara Health include ${andList(top5)}. Send your reports and we will suggest the right option for you, free.`];
+        }
+        const nums = costs.flatMap(o => (o.cost.match(/\$[\d,]+/g) || []).map(v => +v.replace(/[$,]/g, ''))).filter(Boolean);
+        const faqs = [
+            best,
+            ...(nums.length ? [[`How much does ${topic} treatment cost in India?`, `Indicative package costs range from $${Math.min(...nums).toLocaleString('en-US')} to $${Math.max(...nums).toLocaleString('en-US')}, depending on the procedure. Your written estimate depends on your reports, the hospital and your room category, and we share it free.`]] : []),
+            ...(type !== 'treatments' && !st.city && !h && cities.length > 1 ? [[`Which cities in India have these ${type}?`, `${esc(andList(cities))}.`]] : []),
+            ['How can international patients book through Shifara Health?', 'Send your medical reports on WhatsApp or through the booking form. A case manager replies within 24 hours, arranges your appointment and shares a written cost estimate. Our help is free for patients.'],
+            ['Do I need a medical visa for treatment in India?', VISA_ANSWER],
+        ];
+        const html = `
+                <div class="row mt-4" id="lrAbout">
+                    <div class="col-12">${section(heading, `
+                        <p>${intro}</p>
+                        <p>${advice}</p>${alsoHtml}`)}${costs.length ? section(`${topic} Treatment Costs in India`, `
+                        <p>Indicative package costs in India at Shifara partner hospitals. Your written estimate depends on your reports.</p>${costTable(costs)}`) : ''}${section(`FAQs about ${listingTitle(type, st)}`, faqBlock(faqs))}
+                    </div>
+                </div>`;
+        return { html, faqs };
+    }
+
+    return { hospital, doctor, treatment, seoHead, listingDescription, listingAbout };
 };

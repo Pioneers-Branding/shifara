@@ -10,41 +10,34 @@
     const PER_PAGE = 12;
     const desktop = window.matchMedia('(min-width: 768px)');
 
-    const { BASE, esc, svg, deptName, cityName, deptBy, cityBy, hospBy, treatBy, hospitalCard, doctorCard, treatmentCard, listUrl, readFilters } = window.ShifaraUI;
+    const { BASE, esc, svg, deptName, cityName, hospBy, treatBy, hospitalCard, doctorCard, treatmentCard, listUrl, readFilters, filterMatches, listingSort, listingTitle, listingDocTitle, listingIntro } = window.ShifaraUI;
 
     // ---------- Page configuration ----------
-    const deptOf = {
-        hospitals: h => h.departments,
-        doctors: d => d.departments,
-        treatments: t => [t.department],
-    }[TYPE];
-
     const FILTERS = {
         department: {
             label: 'Department', icon: 'heart', placeholder: 'Select department…',
             values: () => D.departments.map(d => d.slug),
             text: deptName,
-            match: (it, v) => deptOf(it).includes(v),
+            match: (it, v) => filterMatches(TYPE, 'department', it, v),
         },
         treatment: {
             label: 'Treatment', icon: 'doc', placeholder: 'Select treatment…',
             values: st => D.treatments.filter(t => !st.department || t.department === st.department).map(t => t.id),
             text: v => treatBy[v]?.name || v,
             group: v => deptName(treatBy[v]?.department),
-            match: (it, v) => deptOf(it).includes(treatBy[v]?.department),
+            match: (it, v) => filterMatches(TYPE, 'treatment', it, v),
         },
         city: {
             label: 'City', icon: 'pin', placeholder: 'Select city…',
             values: () => D.cities.map(c => c.slug),
             text: cityName,
-            match: (it, v) => it.city === v,
+            match: (it, v) => filterMatches(TYPE, 'city', it, v),
         },
         hospital: {
             label: 'Hospital', icon: 'home', placeholder: 'Select hospital…',
             values: st => D.hospitals.filter(h => !st.city || h.city === st.city).map(h => h.id),
             text: v => hospBy[v] ? `${hospBy[v].name}, ${cityName(hospBy[v].city)}` : v,
-            // doctors belong to one hospital; a treatment is offered where its department is
-            match: (it, v) => TYPE === 'treatments' ? !!hospBy[v]?.departments.includes(it.department) : it.hospitalId === v,
+            match: (it, v) => filterMatches(TYPE, 'hospital', it, v),
         },
     };
 
@@ -53,41 +46,21 @@
             items: D.hospitals, keys: ['department', 'treatment', 'city'], noun: 'hospitals',
             heading: 'Find the Right Hospital', searchLabel: 'Search Hospitals', qPlaceholder: 'Search hospital name…',
             haystack: h => `${h.name} ${h.address} ${cityName(h.city)}`,
-            sorts: { doctors: ['Most doctors', (a, b) => b.doctors - a.doctors], name: ['Name A–Z', (a, b) => a.name.localeCompare(b.name)] },
-            title(st) {
-                const where = st.city ? cityName(st.city) : 'India';
-                if (st.treatment) return `Hospitals for ${treatBy[st.treatment]?.name} in ${where}`;
-                if (st.department) return `${deptBy[st.department]?.noun} Hospitals in ${where}`;
-                return `Partner Hospitals in ${where}`;
-            },
-            intro: (n, st) => `Carefully curated list of ${n} partner ${n === 1 ? 'hospital' : 'hospitals'}${st.department ? ' offering ' + deptName(st.department).toLowerCase() : ''} for international patients, with free coordination from Shifara.`,
+            sorts: { doctors: ['Most doctors', listingSort.hospitals], name: ['Name A–Z', (a, b) => a.name.localeCompare(b.name)] },
             card: hospitalCard,
         },
         doctors: {
             items: D.doctors, keys: ['department', 'treatment', 'city', 'hospital'], noun: 'doctors',
             heading: 'Find the Right Doctor', searchLabel: 'Search Doctors', qPlaceholder: 'Search doctor name…',
             haystack: d => `${d.name} ${d.speciality} ${d.designation} ${d.hospital}`,
-            sorts: { experience: ['Most experienced', (a, b) => (b.experience || 0) - (a.experience || 0)], name: ['Name A–Z', (a, b) => a.name.replace(/^Dr\.?\s*/i, '').localeCompare(b.name.replace(/^Dr\.?\s*/i, ''))] },
-            title(st) {
-                if (st.hospital && hospBy[st.hospital]) return `Doctors at ${hospBy[st.hospital].name}`;
-                const where = st.city ? cityName(st.city) : 'India';
-                if (st.treatment) return `Doctors for ${treatBy[st.treatment]?.name} in ${where}`;
-                if (st.department) return `${deptBy[st.department]?.noun} Doctors in ${where}`;
-                return `Specialist Doctors in ${where}`;
-            },
-            intro: n => `${n} experienced ${n === 1 ? 'specialist' : 'specialists'} at JCI and NABH accredited partner hospitals. Get a free opinion before you travel.`,
+            sorts: { experience: ['Most experienced', listingSort.doctors], name: ['Name A–Z', (a, b) => a.name.replace(/^Dr\.?\s*/i, '').localeCompare(b.name.replace(/^Dr\.?\s*/i, ''))] },
             card: doctorCard,
         },
         treatments: {
             items: D.treatments, keys: ['department', 'hospital'], noun: 'treatments',
             heading: 'Find a Treatment', searchLabel: 'Search Treatments', qPlaceholder: 'Search treatment name…',
             haystack: t => `${t.name} ${deptName(t.department)}`,
-            sorts: { name: ['Name A–Z', (a, b) => a.name.localeCompare(b.name)] },
-            title(st) {
-                const what = st.department ? `${deptName(st.department)} Treatments` : 'Treatments';
-                return st.hospital && hospBy[st.hospital] ? `${what} at ${hospBy[st.hospital].name}` : `${what} in India`;
-            },
-            intro: (n, st) => `${n} ${n === 1 ? 'treatment' : 'treatments'} available ${st.hospital && hospBy[st.hospital] ? `at ${hospBy[st.hospital].name}, ${cityName(hospBy[st.hospital].city)}` : 'at our partner hospitals'}. Send your reports for a free plan and cost estimate.`,
+            sorts: { name: ['Name A–Z', listingSort.treatments] },
             card: treatmentCard,
         },
     };
@@ -105,6 +78,8 @@
         // ?department=… style links from older pages still work and are rewritten to the clean path
         P.keys.forEach(k => { const v = fromPath[k] || sp.get(k); if (v) st[k] = v; });
         P.keys.forEach(k => { if (st[k] && !FILTERS[k].values({}).includes(st[k])) delete st[k]; });
+        if (st.treatment) st.department = treatBy[st.treatment]?.department;
+        if (st.treatment) st.department = treatBy[st.treatment]?.department;
         if (sp.get('q')) st.q = sp.get('q');
         if (P.sorts[sp.get('sort')]) st.sort = sp.get('sort');
         st.page = Math.max(1, fromPath.page || parseInt(sp.get('page'), 10) || 1);
@@ -265,8 +240,10 @@
     const out = {
         title: root.querySelector('#lrTitle'), intro: root.querySelector('#lrIntro'), chips: root.querySelector('#lrChips'),
         count: root.querySelector('#lrCount'), sort: root.querySelector('#lrSort'), grid: root.querySelector('#lrGrid'),
-        pager: root.querySelector('#lrPager'), crumb: root.querySelector('#lrCrumb'),
+        pager: root.querySelector('#lrPager'), crumb: root.querySelector('#lrCrumb'), about: root.querySelector('#lrAbout'),
     };
+    // the text below the results is about the URL this page was built for
+    const builtFor = urlFor(state, 1);
     out.sort.innerHTML = Object.entries(P.sorts).map(([k, [label]]) => `<option value="${k}">${label}</option>`).join('');
     out.sort.closest('.lr-sort').classList.toggle('d-none', Object.keys(P.sorts).length < 2);
     out.sort.addEventListener('change', () => apply({ ...state, sort: out.sort.value, page: 1 }));
@@ -279,11 +256,12 @@
         const page = Math.min(state.page || 1, pages);
         const slice = list.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-        const title = P.title(state);
+        const title = listingTitle(TYPE, state);
         out.title.textContent = title;
         out.crumb.textContent = title;
-        document.title = `${title} | Shifara Health`;
-        out.intro.textContent = P.intro(list.length, state);
+        document.title = `${listingDocTitle(TYPE, state)} | Shifara Health`;
+        out.intro.textContent = listingIntro(TYPE, list.length, state);
+        out.about?.classList.toggle('d-none', urlFor(state, 1) !== builtFor);
         out.sort.value = sortKey;
         out.count.innerHTML = list.length
             ? `Showing <b>${(page - 1) * PER_PAGE + 1}–${(page - 1) * PER_PAGE + slice.length}</b> of <b>${list.length}</b> ${P.noun}`

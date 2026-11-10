@@ -11,7 +11,7 @@
 //   privacy-policy/  medical-disclaimer/           legal pages (content in tools/pages/<slug>.html)
 //   services/<slug>/                              service pages (content in tools/services.js)
 //   about-us/  concierge/  country-comparison/  partner-with-us/  book-consultation/   company pages (content in tools/pages/<slug>.html)
-//   hospitals/cardiology/delhi/ …                 a copy of the listing page for every filter URL some page links to
+//   hospitals/cardiology/delhi/ …                 a listing page with its own title and results for every filter URL some page links to
 //   404.html                                      not-found page; sends unknown filter URLs on to the listing page
 //   sitemap.xml  robots.txt                       every indexable page folder (tools/sitemap.js)
 //
@@ -71,7 +71,9 @@ const siteAnchors = s => s.replace(/(<a\b[^>]*?\bhref=")#([a-z][\w-]*)"/g, '$1/#
 const homeOnly = s => s
     .replace(/[ \t]*<link rel="stylesheet" href="\/assets\/css\/listing\.css">\n/g, '')
     .replace(/[ \t]*<script src="\/assets\/(data\/catalog|js\/cards|js\/home-search)\.js"><\/script>\n/g, '');
-const HEAD = homeOnly(siteAnchors(home.slice(0, home.indexOf(HERO))));
+// the homepage's own SEO tags stay on the homepage; other pages add theirs through layout({ extraHead })
+const HEAD = homeOnly(siteAnchors(home.slice(0, home.indexOf(HERO))))
+    .replace(/[ \t]*<(?:meta name="(?:author|robots|twitter:card)"|meta property="og:|link rel="canonical"|script type="application\/ld\+json").*\n/g, '');
 const FOOT = homeOnly(siteAnchors(home.slice(home.indexOf(FOOTER))));
 
 // extraHead: whole lines (canonical, social and schema.org tags) placed just before </head>
@@ -96,7 +98,6 @@ const hash = s => crypto.createHash('sha1').update(s).digest('hex').slice(0, 12)
 const stats = { written: 0, unchanged: 0, skipped: [] };
 
 const norm = s => s.replace(/\r\n/g, '\n');
-const isGenerated = html => { const m = norm(html).match(MARK); return !!m && hash(norm(html).replace(MARK, '')) === m[1]; };
 
 // Listing URLs with filters (/hospitals/cardiology/delhi/) that pages link to; each gets a real folder below
 const linkedListings = new Set();
@@ -114,7 +115,8 @@ function collectListings(html, rel) {
 }
 
 // asIs: save the links exactly as given (already relative, or site-root on purpose)
-function write(rel, html, { asIs = false } = {}) {
+// seo: the page's SEO tags, added to a hand-edited page that does not have them yet
+function write(rel, html, { asIs = false, seo = '' } = {}) {
     collectListings(html, rel);
     if (ONLY && !rel.startsWith(ONLY)) return;
     // marker goes on its own line right after <!doctype html>; editors may switch the file to CRLF,
@@ -130,7 +132,8 @@ function write(rel, html, { asIs = false } = {}) {
         if (edited && !FORCE) {
             // keep the hand edits, but still make its site-root links relative
             collectListings(old, rel);
-            const fixed = relative(raw, rel);
+            let fixed = relative(raw, rel);
+            if (seo && !raw.includes('rel="canonical"')) fixed = fixed.replace('</head>', seo + '</head>');
             if (fixed !== raw) fs.writeFileSync(file, fixed);
             stats.skipped.push(rel);
             return;
@@ -164,8 +167,9 @@ const LISTINGS = {
     },
 };
 
+const LISTING_MAIN = {};
 for (const [page, c] of Object.entries(LISTINGS)) {
-    const main = `    <!-- ================= LISTING (${page}) ================= -->
+    LISTING_MAIN[page] = `    <!-- ================= LISTING (${page}) ================= -->
     <main data-listing="${page}">
         <section class="lp-hero">
             <div class="container">
@@ -222,17 +226,55 @@ for (const [page, c] of Object.entries(LISTINGS)) {
         </section>
     </main>
 `;
-    write(`${page}/index.html`, layout({
-        title: c.title, description: c.desc, css: ['listing.css'],
-        js: ['/assets/data/catalog.js', '/assets/js/cards.js', '/assets/js/listing.js'], main,
-    }));
 }
+
+// One listing page: /<type>/ or a filter URL such as /hospitals/cardiology/delhi/
+function listingPage(type, p) {
+    const c = LISTINGS[type];
+    const { page: _page, ...f } = UI.readFilters(p);
+    // a treatment moved to another department: its old filter URL stays and points search engines at the new one
+    const moved = f.treatment && f.department !== UI.treatBy[f.treatment]?.department;
+    if (moved) f.department = UI.treatBy[f.treatment]?.department;
+    const items = UI.listingItems(type, f);
+    // a hospital + department page with 0 or 1 doctors repeats the hospital's own page: the URL stays, search engines get the hospital
+    const thin = type === 'doctors' && f.hospital && f.department && items.length < 2;
+    const heading = UI.listingTitle(type, f);
+    const title = UI.listingDocTitle(type, f);
+    const description = T.listingDescription(type, f, items);
+    const about = thin || !items.length ? null : T.listingAbout(type, f, items);
+    const url = SITE + p;
+    const extraHead = T.seoHead({
+        url, canonical: moved ? SITE + UI.listUrl(type, f) : thin ? `${SITE}/hospital/${f.hospital}/` : url, title, description, pageType: 'CollectionPage', faqs: about?.faqs,
+        crumbs: [['Home', '/'], [c.crumb, `/${type}/`], ...(p === `/${type}/` ? [] : [[heading, p]])],
+        nodes: items.length ? [{
+            '@type': 'ItemList', '@id': url + '#results', numberOfItems: items.length,
+            itemListElement: items.slice(0, 12).map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.name, url: `${SITE}/${type.slice(0, -1)}/${it.id}/` })),
+        }] : [],
+    });
+    // the first page of results as listing.js shows it, then more cards (hidden, up to 60) so search engines can follow them
+    const card = { hospitals: UI.hospitalCard, doctors: UI.doctorCard, treatments: UI.treatmentCard }[type];
+    const cards = items.slice(0, 60).map((it, i) => i < 12 ? card(it) : card(it).replace('<div class="col">', '<div class="col d-none">')).join('\n');
+    const main = LISTING_MAIN[type]
+        .replace(`<span id="lrCrumb">${c.title}</span>`, () => `<span id="lrCrumb">${esc(heading)}</span>`)
+        .replace(`<h1 id="lrTitle">${c.title}</h1>`, () => `<h1 id="lrTitle">${esc(heading)}</h1>`)
+        .replace('<p id="lrIntro"></p>', () => `<p id="lrIntro">${esc(UI.listingIntro(type, items.length, f))}</p>`)
+        .replace('id="lrGrid"></div>', () => `id="lrGrid">${cards}</div>`)
+        .replace('id="lrPager" aria-label="Pagination"></nav>', m => m + (about ? about.html : ''));
+    return layout({
+        title, description, css: about ? ['listing.css', 'detail.css'] : ['listing.css'],
+        js: ['/assets/data/catalog.js', '/assets/js/cards.js', '/assets/js/listing.js'], main, extraHead,
+    });
+}
+for (const page of Object.keys(LISTINGS)) write(`${page}/index.html`, listingPage(page, `/${page}/`));
+
+// SEO tags for the pages with a simple Home > page trail
+const simpleSeo = (p, title, description, name) => T.seoHead({ url: SITE + p, title, description, crumbs: [['Home', '/'], [name, p]] });
 
 // ---------- Legal pages (content in tools/pages/<slug>.html) ----------
 const LEGAL = {
     'privacy-policy': {
         title: 'Privacy Policy',
-        desc: 'How Shifara Health collects, uses, shares and protects your personal and health data under the Digital Personal Data Protection Act, 2023, and how to exercise your rights.',
+        desc: 'How Shifara Health collects, uses, shares and protects your personal and health data under the Digital Personal Data Protection Act, 2023.',
     },
     'medical-disclaimer': {
         title: 'Medical Disclaimer',
@@ -256,7 +298,8 @@ ${body.trim().split('\n').map(l => '                ' + l).join('\n')}
         </div>
     </main>
 `;
-    write(`${slug}/index.html`, layout({ title: c.title, description: c.desc, css: ['listing.css'], js: [], main }));
+    const seo = simpleSeo(`/${slug}/`, c.title, c.desc, c.title);
+    write(`${slug}/index.html`, layout({ title: c.title, description: c.desc, css: ['listing.css'], js: [], main, extraHead: seo }), { seo });
 }
 
 // ---------- Service pages (content in tools/services.js) ----------
@@ -393,25 +436,27 @@ ${others.map(o => `                    <div class="col"><a href="/services/${o.s
         </section>
     </main>
 `;
-    write(`services/${s.slug}/index.html`, layout({ title: s.title, description: s.desc, css: ['listing.css', 'service.css'], js: [], main }));
+    const seo = T.seoHead({ url: `${SITE}/services/${s.slug}/`, title: s.title, description: s.desc, image: s.image,
+        crumbs: [['Home', '/'], [s.name, `/services/${s.slug}/`]] });
+    write(`services/${s.slug}/index.html`, layout({ title: s.title, description: s.desc, css: ['listing.css', 'service.css'], js: [], main, extraHead: seo }), { seo });
 }
 
 // ---------- Company pages (content in tools/pages/<slug>.html) ----------
 const COMPANY = {
     'about-us': {
-        name: 'About Us', eyebrow: 'About Shifara Health', h1: 'With You, <em>Every Step</em> of the Way',
+        name: 'About Us', title: 'About Shifara Health: Medical Care Companion in India', eyebrow: 'About Shifara Health', h1: 'With You, <em>Every Step</em> of the Way',
         lead: 'We guide international patients through every question, appointment and unfamiliar step of treatment in India.',
-        desc: 'Shifara Health is a medical care companion that connects international patients with accredited hospitals and support services in India, from first contact to follow-up.',
+        desc: 'Shifara Health connects international patients with accredited hospitals and support services in India, from first contact to follow-up.',
     },
     'concierge': {
-        name: 'Concierge', eyebrow: 'Patient assistance', h1: 'Concierge &amp; <em>Care Companion</em>',
+        name: 'Concierge', title: 'Medical Concierge & Care Companion in India', eyebrow: 'Patient assistance', h1: 'Concierge &amp; <em>Care Companion</em>',
         lead: 'A dedicated care companion for hospital visits, paperwork, billing and daily needs, from your first consultation through recovery.',
         desc: 'Shifara Health concierge: a dedicated care companion for hospital navigation, care coordination, billing support and medical records during treatment in India.',
     },
     'country-comparison': {
-        name: 'Country Comparison', eyebrow: 'Cost & access', h1: 'Treatment Costs: <em>India vs Other Countries</em>',
+        name: 'Country Comparison', title: 'Treatment Cost in India vs Other Countries', eyebrow: 'Cost & access', h1: 'Treatment Costs: <em>India vs Other Countries</em>',
         lead: 'Compare indicative treatment prices and waiting times in India, the USA, the UK, Singapore, Thailand and Turkey.',
-        desc: 'Compare indicative medical treatment costs and waiting times in India, the USA, the UK, Singapore, Thailand and Turkey for heart, orthopaedic, transplant, IVF and cosmetic procedures.',
+        desc: 'Compare indicative treatment costs and waiting times in India, the USA, the UK, Singapore, Thailand and Turkey for heart, joint, transplant and IVF care.',
     },
     'book-consultation': {
         name: 'Book Consultation', eyebrow: '100% free · reply within 24 hrs', h1: 'Book a <em>Free Consultation</em>',
@@ -421,12 +466,12 @@ const COMPANY = {
     'partner-with-us': {
         name: 'Partner With Us', eyebrow: 'Partnerships', h1: 'Partner With Us. <em>Together, Healing Gets Easier.</em>',
         lead: 'Hospitals, recovery homes, caregiver agencies and travel services: join the network that looks after international patients in India.',
-        desc: 'Partner with Shifara Health: hospitals, recovery homes, nursing agencies and travel, visa and interpreter services can join our international patient care network.',
+        desc: 'Hospitals, recovery homes, nursing agencies and travel, visa and interpreter services can join the Shifara Health international patient care network.',
     },
     'travel-visa': {
-        name: 'Travel & Visa', eyebrow: 'Medical visa guide', h1: 'Medical Visa &amp; <em>Travel to India</em>',
+        name: 'Travel & Visa', title: 'India Medical Visa Guide for International Patients', eyebrow: 'Medical visa guide', h1: 'Medical Visa &amp; <em>Travel to India</em>',
         lead: 'Which visa to apply for, the documents you need, how to apply and what happens when you land, in one place. Our visa help is free.',
-        desc: 'India medical visa guide for international patients: e-Medical Visa and attendant visas, documents, how to apply, FRRO registration, extensions and travel checklist.',
+        desc: 'India medical visa guide for international patients: e-Medical Visa and attendant visas, documents, how to apply, FRRO registration and travel checklist.',
     },
     'thank-you': {
         name: 'Thank You', eyebrow: 'Request received', h1: 'Thank You! <em>We\'ve Got Your Details</em>',
@@ -449,11 +494,10 @@ for (const [slug, c] of Object.entries(COMPANY)) {
 ${body.trim().split('\n').map(l => l ? '        ' + l : l).join('\n')}
     </main>
 `;
-    const html = layout({
-        title: c.name === 'Country Comparison' ? 'Treatment Cost Comparison by Country' : c.name,
-        description: c.desc, css: ['listing.css', 'service.css'], js: [], main,
-    });
-    write(`${slug}/index.html`, c.noindex ? html.replace('<head>', '<head>\n    <meta name="robots" content="noindex">') : html);
+    const title = c.title || c.name;
+    const seo = c.noindex ? '' : simpleSeo(`/${slug}/`, title, c.desc, c.name);
+    const html = layout({ title, description: c.desc, css: ['listing.css', 'service.css'], js: [], main, extraHead: seo });
+    write(`${slug}/index.html`, c.noindex ? html.replace('<head>', '<head>\n    <meta name="robots" content="noindex">') : html, { seo });
 }
 
 // ---------- Detail pages ----------
@@ -481,33 +525,23 @@ for (const [kind, dataKind, items] of DETAILS) {
 }
 
 // ---------- Filtered listing pages ----------
-// Every linked filter URL gets its own copy of the listing page, so it opens on any static server
+// Every linked filter URL gets its own listing page, so it opens on any static server
 // without rewrite rules. Other combinations (picked in the filter bar, pages 2+) are rewritten to the
 // listing page by .htaccess / server.js, or sent there by 404.html.
-const listingHtml = Object.fromEntries(Object.keys(LISTINGS).map(t => [t, norm(read(`${t}/index.html`)).replace(MARK, '')]));
-for (const p of [...linkedListings].sort()) {
-    const type = p.split('/')[1];
-    // the page as written for /<type>/, with its links moved one folder deeper per filter segment
-    const html = listingHtml[type].replace(/(\s(?:href|src|data-href)=")((?:\.\.\/)+)/g,
-        (m, attr, up) => attr + '../'.repeat(p.split('/').length - 3) + up);
-    write(`${p.slice(1)}index.html`, html, { asIs: true });
-}
-// remove generated filter folders nothing links to any more (hand-edited ones are kept)
-let removed = 0;
-for (const type of ONLY ? [] : Object.keys(LISTINGS)) {
+// A URL stays once it exists: a filter folder nothing links to any more is still rebuilt, never removed.
+for (const type of Object.keys(LISTINGS)) {
     (function walk(dir) {
         for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
             if (!e.isDirectory()) continue;
             const sub = path.join(dir, e.name);
             walk(sub);
-            const file = path.join(sub, 'index.html');
-            const url = '/' + path.relative(ROOT, sub).split(path.sep).join('/') + '/';
-            if (fs.existsSync(file) && !linkedListings.has(url) && isGenerated(fs.readFileSync(file, 'utf8'))) { fs.unlinkSync(file); removed++; }
-            if (!fs.readdirSync(sub).length) fs.rmdirSync(sub);
+            if (fs.existsSync(path.join(sub, 'index.html'))) linkedListings.add('/' + path.relative(ROOT, sub).split(path.sep).join('/') + '/');
         }
     })(path.join(ROOT, type));
 }
-console.log(`filtered listing pages: ${linkedListings.size}${removed ? ` (${removed} no longer linked, removed)` : ''}`);
+// a Set visits entries added while looping, so a page that links to a new filter URL still gets that folder built
+for (const p of linkedListings) write(`${p.slice(1)}index.html`, listingPage(p.split('/')[1], p));
+console.log(`filtered listing pages: ${linkedListings.size}`);
 
 // ---------- 404 page ----------
 // Served for any missing URL, so its links stay site-root ("/…"). A filter URL without its own folder
