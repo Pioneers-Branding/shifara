@@ -1209,3 +1209,177 @@
     max-width: 820px;
     margin: clamp(28px, 4vw, 40px) auto 0
 }
+
+/* ---------- Partner network page ---------- */
+/* stats cards overlap the page header (.tv-facts above); the buttons sit under them */
+.pn-hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px
+}
+
+.pn-logos {
+    overflow: hidden
+}
+
+.pn-logos .sec-head {
+    margin-bottom: 22px
+}
+
+.pn-pillar {
+    height: 100%;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: box-shadow .25s, transform .25s
+}
+
+.pn-pillar:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-3px)
+}
+
+.pn-pillar .ic svg,
+.pn-type .ic svg {
+    width: 48px;
+    height: 48px;
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--teal-soft);
+    color: var(--teal-d)
+}
+
+.pn-pillar h3,
+.pn-type h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 16px 0 6px
+}
+
+.pn-pillar p,
+.pn-type p {
+    font-size: 14px;
+    color: var(--slate);
+    margin: 0
+}
+
+.pn-type {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--coral);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    transition: transform .25s
+}
+
+.pn-type:hover {
+    transform: translateY(-3px)
+}
+
+.pn-type.in {
+    border-top-color: var(--teal)
+}
+
+.pn-type .ic svg {
+    background: var(--blush);
+    color: var(--coral)
+}
+
+.pn-type.in .ic svg {
+    background: var(--teal-soft);
+    color: var(--teal-d)
+}
+
+.pn-tag {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--coral-d)
+}
+
+.pn-type.in .pn-tag {
+    color: var(--teal-d)
+}
+
+.pn-type p {
+    margin-bottom: 18px
+}
+
+.pn-type a {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--coral)
+}
+
+.pn-type a svg {
+    width: 16px;
+    height: 16px;
+    transition: transform .2s
+}
+
+.pn-type a:hover svg {
+    transform: translateX(3px)
+}
+
+.pn-advisor .sec-head {
+    max-width: 720px
+}
+
+.pn-apply {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--coral);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: clamp(24px, 4vw, 40px);
+    text-align: center
+}
+
+.pn-apply .ic svg {
+    width: 56px;
+    height: 56px;
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--blush);
+    color: var(--coral)
+}
+
+.pn-apply h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 16px 0 8px
+}
+
+.pn-apply p {
+    color: var(--slate);
+    max-width: 440px;
+    margin: 0 auto 22px
+}
+
+.pn-apply small {
+    display: block;
+    margin-top: 16px;
+    color: var(--slate)
+}
+
+.pn-faq {
+    max-width: 860px;
+    margin: 0 auto
+}

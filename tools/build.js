@@ -473,9 +473,9 @@ const COMPANY = {
         desc: 'Book a free consultation with Shifara Health. Share your medical details and get opinions and written cost estimates from accredited hospitals in India.',
     },
     'partner-with-us': {
-        name: 'Partner With Us', eyebrow: 'Partnerships', h1: 'Partner With Us. <em>Together, Healing Gets Easier.</em>',
-        lead: 'Hospitals, recovery homes, caregiver agencies and travel services: join the network that looks after international patients in India.',
-        desc: 'Hospitals, recovery homes, nursing agencies and travel, visa and interpreter services can join the Shifara Health international patient care network.',
+        name: 'Partner With Us', eyebrow: 'Shifara Partner Network', h1: 'Join the Medical Travel Network <em>for Africa, Bangladesh &amp; the Middle East</em>',
+        lead: 'Refer patients to 130+ accredited hospitals in India, or care for them here. One team handles hospitals, visas, travel and recovery for every patient you refer.',
+        desc: 'Become a Shifara Health partner: medical facilitators, travel agents, doctors and affiliates refer patients to 130+ accredited hospitals in India; hospitals and care services join the care network.',
     },
     'travel-visa': {
         name: 'Travel & Visa', title: 'India Medical Visa Guide for International Patients', eyebrow: 'Medical visa guide', h1: 'Medical Visa &amp; <em>Travel to India</em>',
